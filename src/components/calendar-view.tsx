@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import rrulePlugin from '@fullcalendar/rrule'
+import luxon3Plugin from '@fullcalendar/luxon3'
 import { Button } from '@/components/ui/button'
 import { DateTime } from 'luxon'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
@@ -99,7 +100,7 @@ export function CalendarView({ events: events, onEventClick, onDateClick, onCrea
       <div className="p-3 sm:p-5">
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin, luxon3Plugin]}
           initialView="dayGridMonth"
           headerToolbar={false}
           events={events}
