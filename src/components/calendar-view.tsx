@@ -8,6 +8,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import rrulePlugin from '@fullcalendar/rrule'
 import { Button } from '@/components/ui/button'
+import { DateTime } from 'luxon'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 export type CalendarEvent = {
@@ -104,7 +105,13 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
           eventContent={(arg) => {
             const isMonth = arg.view.type === 'dayGridMonth'
             const color = arg.event.backgroundColor || '#3b82f6'
-            const timeText = arg.timeText
+            const start = arg.event.start
+            const end = arg.event.end
+            const timeText = start
+              ? (arg.event.allDay
+                ? ''
+                : DateTime.fromJSDate(start).setZone('America/Chicago').toFormat('h:mma').toLowerCase())
+              : ''
             const title = arg.event.title
             if (isMonth) {
               return (
