@@ -183,7 +183,7 @@ export function TasksList({ tasks }: { tasks: Task[] }) {
                         {due.tone === 'overdue' && <span className="font-semibold">· Overdue</span>}
                       </div>
                     )}
-                    {task.notes && <p className="text-sm text-neutral-600 mt-1.5 leading-relaxed">{task.notes}</p>
+                    {task.notes && <p className="text-sm text-neutral-600 mt-1.5 leading-relaxed">{task.notes}</p>}
                   </div>
                   <button
                     onClick={() => handleDelete(task.id)}
