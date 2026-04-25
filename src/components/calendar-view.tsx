@@ -49,7 +49,7 @@ const dayGradients = [
 
 export function CalendarView({ events, onEventClick, onDateClick, onCreateClick }: Props) {
   const calendarRef = useRef<FullCalendar | null>(null)
-  const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('timeGridWeek')
+  const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
   const [title, setTitle] = useState('')
 
   const goPrev = () => calendarRef.current?.getApi().prev()
@@ -99,7 +99,7 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
-          initialView="timeGridWeek"
+          initialView="dayGridMonth"
           headerToolbar={false}
           events={events}
           height="auto"
