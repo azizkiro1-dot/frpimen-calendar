@@ -28,7 +28,6 @@ export default async function HomePage() {
   const meetingTypes = typesResp.data ?? []
 
   const seen = new Set<string>()
-  if (rawEvents[0]) console.log('DEBUG_TZ raw=', rawEvents[0].starts_at, '-> ensureUtc=', ensureUtc(rawEvents[0].starts_at))
   const calendarEvents: CalendarEvent[] = (rawEvents as any[]).filter((e:any) => { if (seen.has(e.id)) return false; seen.add(e.id); return true }).map((e: any) => ({
     id: e.id,
     title: e.visibility === 'confidential' && e.owner_id !== user.id ? 'Busy' : e.title,

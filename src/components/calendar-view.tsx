@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, memo, useMemo } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -10,7 +10,7 @@ import rrulePlugin from '@fullcalendar/rrule'
 import luxon3Plugin from '@fullcalendar/luxon3'
 import { Button } from '@/components/ui/button'
 import { DateTime } from 'luxon'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react'
 
 const TZ = 'America/Chicago'
 
@@ -38,66 +38,80 @@ type Props = {
   onCreateClick?: () => void
 }
 
-const dayGradients = [
-  'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-  'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-  'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-  'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
-  'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
-  'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)',
-  'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)',
-]
+const VIEWS = [
+  { id: 'dayGridMonth', label: 'Month' },
+  { id: 'timeGridWeek', label: 'Week' },
+  { id: 'timeGridDay', label: 'Day' },
+  { id: 'listWeek', label: 'Agenda' },
+] as const
 
-export function CalendarView({ events: events, onEventClick, onDateClick, onCreateClick }: Props) {
+type ViewId = typeof VIEWS[number]['id']
+
+export function CalendarView({ events, onEventClick, onDateClick, onCreateClick }: Props) {
   const calendarRef = useRef<FullCalendar | null>(null)
-  if (typeof window !== 'undefined' && events[0]) (window as any).DEBUG_TZ_CLIENT = events[0]
-  const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
+  const [currentView, setCurrentView] = useState<ViewId>('dayGridMonth')
   const [title, setTitle] = useState('')
 
   const goPrev = () => calendarRef.current?.getApi().prev()
   const goNext = () => calendarRef.current?.getApi().next()
   const goToday = () => calendarRef.current?.getApi().today()
-  const changeView = (view: typeof currentView) => {
+  const changeView = (view: ViewId) => {
     calendarRef.current?.getApi().changeView(view)
     setCurrentView(view)
   }
 
+  const todayCount = useMemo(() => {
+    const todayStr = DateTime.now().setZone(TZ).toFormat('yyyy-LL-dd')
+    return events.filter(e => {
+      const d = DateTime.fromISO(e.start, { setZone: true }).setZone(TZ).toFormat('yyyy-LL-dd')
+      return d === todayStr
+    }).length
+  }, [events])
+
   return (
-    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+    <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-100 flex-wrap gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={goToday} className="rounded-full">Today</Button>
-          <div className="flex items-center">
-            <button onClick={goPrev} className="h-8 w-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button variant="outline" size="sm" onClick={goToday} className="rounded-full h-8 px-4">Today</Button>
+          <div className="flex items-center bg-neutral-50 rounded-full">
+            <button onClick={goPrev} aria-label="Previous" className="h-8 w-8 rounded-full hover:bg-neutral-200/70 flex items-center justify-center transition">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button onClick={goNext} className="h-8 w-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">
+            <button onClick={goNext} aria-label="Next" className="h-8 w-8 rounded-full hover:bg-neutral-200/70 flex items-center justify-center transition">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
-          <h2 className="text-lg sm:text-xl font-semibold ml-2 truncate">{title}</h2>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-lg sm:text-2xl font-semibold tracking-tight truncate">{title}</h2>
+            {todayCount > 0 && currentView === 'dayGridMonth' && (
+              <span className="text-xs text-neutral-500 hidden sm:inline">{todayCount} today</span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-full bg-neutral-100 p-1">
-            {(['dayGridMonth','timeGridWeek','timeGridDay','listWeek'] as const).map((v) => (
+            {VIEWS.map(v => (
               <button
-                key={v}
-                onClick={() => changeView(v)}
-                className={`px-3 py-1 text-xs sm:text-sm rounded-full transition ${
-                  currentView === v ? 'bg-white shadow-sm font-medium text-neutral-900' : 'text-neutral-600 hover:text-neutral-900'
+                key={v.id}
+                onClick={() => changeView(v.id)}
+                className={`px-3 sm:px-4 py-1 text-xs sm:text-[13px] rounded-full transition font-medium ${
+                  currentView === v.id
+                    ? 'bg-white shadow-sm text-neutral-900'
+                    : 'text-neutral-500 hover:text-neutral-900'
                 }`}
               >
-                {v === 'dayGridMonth' ? 'Month' : v === 'timeGridWeek' ? 'Week' : v === 'timeGridDay' ? 'Day' : 'List'}
+                {v.label}
               </button>
             ))}
           </div>
-          <Button size="sm" onClick={onCreateClick} className="rounded-full shrink-0">
+          <Button size="sm" onClick={onCreateClick} className="rounded-full shrink-0 h-8 px-4 shadow-sm">
             <Plus className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">New event</span>
+            <span className="hidden sm:inline">New</span>
           </Button>
         </div>
       </div>
-      <div className="p-3 sm:p-5">
+
+      <div className="p-2 sm:p-5">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin, luxon3Plugin]}
@@ -108,7 +122,7 @@ export function CalendarView({ events: events, onEventClick, onDateClick, onCrea
           nowIndicator
           dayMaxEvents={3}
           moreLinkClick="popover"
-          dayPopoverFormat={{ month: "long", day: "numeric", year: "numeric" }}
+          dayPopoverFormat={{ month: 'long', day: 'numeric', year: 'numeric' }}
           editable
           selectable
           timeZone={TZ}
@@ -117,58 +131,48 @@ export function CalendarView({ events: events, onEventClick, onDateClick, onCrea
           slotMaxTime="23:00:00"
           slotDuration="00:30:00"
           slotLabelInterval="01:00"
-          allDaySlot={true}
+          slotLabelFormat={{ hour: 'numeric', meridiem: 'short' }}
+          allDaySlot
           allDayText="all day"
           expandRows
           firstDay={0}
+          dayHeaderFormat={
+            currentView === 'dayGridMonth'
+              ? { weekday: 'short' }
+              : { weekday: 'short', day: 'numeric' }
+          }
           datesSet={(arg) => setTitle(arg.view.title)}
           eventClick={(info) => onEventClick?.(info.event.id)}
           dateClick={(info) => onDateClick?.(info.date)}
-          dayHeaderContent={(arg) => {
-            const dt = DateTime.fromJSDate(arg.date).setZone(TZ)
-            const isToday = arg.isToday
-            const dayName = dt.toFormat('ccc').toLowerCase()
-            const dayNum = dt.toFormat('d')
-            const grad = dayGradients[dt.weekday % 7]
-            if (currentView === 'dayGridMonth') {
-              return (
-                <div className="text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-medium py-2">
-                  {dayName}
-                </div>
-              )
-            }
-            return (
-              <div className={`flex flex-col items-center justify-center py-2 px-2 rounded-2xl mx-1 my-1 ${isToday ? 'shadow-md ring-1 ring-neutral-200' : ''}`}
-                style={{ background: isToday ? '#fff' : grad }}>
-                <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-700 font-medium">{dayName}</span>
-                <span className={`text-2xl font-semibold leading-none mt-0.5 ${isToday ? 'text-neutral-900' : 'text-neutral-800'}`}>{dayNum}</span>
-              </div>
-            )
-          }}
           eventContent={(arg) => {
-            const isMonth = arg.view.type === 'dayGridMonth'
-            const isList = arg.view.type === 'listWeek'
+            const view = arg.view.type
+            const isMonth = view === 'dayGridMonth'
+            const isList = view === 'listWeek'
             const color = arg.event.backgroundColor || '#6366f1'
             const start = arg.event.start
-            const end = arg.event.end
             const timeText = start && !arg.event.allDay
               ? DateTime.fromJSDate(start).setZone(TZ).toFormat('h:mma').toLowerCase()
               : ''
             const title = arg.event.title
 
-            if (isList) {
-              return null
-            }
+            if (isList) return null
 
             if (isMonth) {
               return (
                 <div
-                  className="px-2 py-1 text-[11px] w-full overflow-hidden rounded-md hover:scale-[1.02] transition-transform"
-                  style={{ background: hexToRgba(color, 0.18), borderLeft: `2.5px solid ${color}` }}
+                  className="px-2 py-[3px] text-[11.5px] w-full overflow-hidden rounded-md transition-all hover:translate-y-[-1px] cursor-pointer"
+                  style={{
+                    background: hexToRgba(color, 0.16),
+                    borderLeft: `2.5px solid ${color}`,
+                  }}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    {timeText && <span className="text-neutral-700 text-[10px] tabular-nums shrink-0 font-medium">{timeText}</span>}
-                    <span className="truncate font-semibold text-neutral-900">{title}</span>
+                    {timeText && (
+                      <span className="text-neutral-700 text-[10px] tabular-nums shrink-0 font-semibold">
+                        {timeText}
+                      </span>
+                    )}
+                    <span className="truncate font-medium text-neutral-900">{title}</span>
                   </div>
                 </div>
               )
@@ -176,19 +180,29 @@ export function CalendarView({ events: events, onEventClick, onDateClick, onCrea
 
             return (
               <div
-                className="h-full w-full rounded-lg overflow-hidden flex flex-col cursor-pointer"
+                className="h-full w-full rounded-lg overflow-hidden flex cursor-pointer shadow-sm"
                 style={{
-                  background: hexToRgba(color, 0.15),
+                  background: hexToRgba(color, 0.18),
                   borderLeft: `3px solid ${color}`,
                 }}
               >
-                <div className="px-2 py-1 text-xs flex-1 min-h-0">
+                <div className="px-2 py-1.5 text-xs flex-1 min-h-0">
                   <div className="font-semibold text-neutral-900 truncate leading-tight">{title}</div>
-                  {timeText && <div className="text-[10.5px] text-neutral-700 mt-0.5 tabular-nums">{timeText}</div>}
+                  {timeText && (
+                    <div className="text-[10.5px] text-neutral-700 mt-0.5 tabular-nums">
+                      {timeText}
+                    </div>
+                  )}
                 </div>
               </div>
             )
           }}
+          noEventsContent={() => (
+            <div className="text-center py-12 text-neutral-500">
+              <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-neutral-300" />
+              <p className="text-sm">No events in this range</p>
+            </div>
+          )}
         />
       </div>
     </div>
