@@ -259,3 +259,26 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 .fc-event { transition: transform 0.12s ease; }
 .fc-event:hover { transform: translateY(-1px); }
+
+
+/* Bigger tap targets, bottom-sheet style popover on mobile */
+@media (max-width: 640px) {
+  .fc-popover { 
+    position: fixed !important; 
+    left: 8px !important; 
+    right: 8px !important; 
+    width: auto !important; 
+    bottom: 72px !important; 
+    top: auto !important; 
+    max-height: 60vh; 
+    overflow-y: auto; 
+    border-radius: 1rem !important; 
+    box-shadow: 0 24px 48px rgba(0,0,0,0.18) !important; 
+  }
+  .fc-popover .fc-popover-body { padding: 12px !important; }
+  .fc-popover .fc-popover-title { font-size: 1.05rem; font-weight: 600; }
+  .fc-event { padding: 6px 8px !important; min-height: 28px; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+}
+.fc .fc-button { transition: all 0.15s ease; }
+.fc .fc-event-main { line-height: 1.3; }
