@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ChatInterface } from '@/components/chat-interface'
 import { Calendar, CheckSquare, Users, MessageSquare, LogOut } from 'lucide-react'
-import { AppHeader } from '@/components/app-header'
+import { AppSidebar } from '@/components/app-sidebar'
 
 export default async function ChatPage() {
   const supabase = await createClient()
@@ -25,14 +25,16 @@ export default async function ChatPage() {
     .limit(40)
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <AppHeader userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
+    <div className="min-h-screen bg-neutral-50">
+      <AppSidebar userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
+      <div className="md:pl-64 transition-[padding] duration-200">
       <main className="max-w-4xl mx-auto px-4 py-6">
         <ChatInterface
           initialMessages={(history ?? []) as any}
           userName={profile?.full_name ?? user.email ?? 'friend'}
         />
       </main>
+      </div>
     </div>
   )
 }

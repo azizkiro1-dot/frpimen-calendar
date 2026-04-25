@@ -282,3 +282,29 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 .fc .fc-button { transition: all 0.15s ease; }
 .fc .fc-event-main { line-height: 1.3; }
+
+/* Design 1 — mobile day timeline polish */
+@media (max-width: 768px) {
+  .fc-timegrid-slot { height: 3em !important; }
+  .fc-timegrid-slot-label { font-size: 11px !important; padding-right: 8px !important; }
+  .fc-timegrid-event { border-radius: 12px !important; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .fc-timegrid-event .fc-event-main { padding: 8px 10px !important; }
+  .fc-col-header { background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%); }
+  .fc-daygrid-day { min-height: 70px; }
+  .fc-event-time { font-weight: 600; }
+}
+
+/* Smooth FullCalendar polish across breakpoints */
+.fc { font-family: inherit; }
+.fc-toolbar-title { letter-spacing: -0.01em; }
+.fc-day-today { background-color: rgba(254, 240, 138, 0.18) !important; }
+.fc-day-today .fc-daygrid-day-number {
+  background: #0a0a0a; color: #fff; border-radius: 999px;
+  width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+}
+.fc-daygrid-day-frame { padding: 4px; }
+.fc-scrollgrid { border-radius: 16px; overflow: hidden; }
+.fc-col-header-cell-cushion { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #737373; padding: 8px; }
+.fc-timegrid-now-indicator-line { border-color: #ef4444 !important; border-width: 2px !important; }
+.fc-timegrid-now-indicator-arrow { border-color: #ef4444 !important; }

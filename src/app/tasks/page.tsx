@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Calendar, LogOut, CheckSquare, MessageSquare, LayoutDashboard, Users } from 'lucide-react'
 import { TasksList } from '@/components/tasks-list'
-import { AppHeader } from '@/components/app-header'
+import { AppSidebar } from '@/components/app-sidebar'
 
 export default async function TasksPage() {
   const supabase = await createClient()
@@ -20,12 +20,14 @@ export default async function TasksPage() {
     .order('due_at', { ascending: true, nullsFirst: false })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <AppHeader userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
+    <div className="min-h-screen bg-neutral-50">
+      <AppSidebar userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
 
+      <div className="md:pl-64 transition-[padding] duration-200">
       <main className="max-w-4xl mx-auto px-4 py-6">
         <TasksList tasks={tasks ?? []} />
       </main>
+      </div>
     </div>
   )
 }

@@ -3,13 +3,14 @@
 import { useState, useTransition, useEffect, useRef } from 'react'
 import { DateTime } from 'luxon'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createEvent, updateEvent, deleteEvent } from '@/app/actions/events'
 import { checkConflicts, suggestAlternatives, type ConflictEvent } from '@/app/actions/conflicts'
-import { Trash2, AlertTriangle, Sparkles, Loader2, X } from 'lucide-react'
+import { Trash2, AlertTriangle, Sparkles, Loader2 } from 'lucide-react'
 
 const TZ = 'America/Chicago'
 
@@ -79,8 +80,21 @@ function prettyRange(sd: string, st: string, ed: string, et: string): string {
   return `${s.toFormat('EEE LLL d, h:mm a')} – ${e.toFormat('EEE LLL d, h:mm a')}`
 }
 
+function useIsMobile() {
+  const [m, setM] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const update = () => setM(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return m
+}
+
 export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDate }: Props) {
   const isEdit = !!event?.id
+  const isMobile = useIsMobile()
   const [pending, startTransition] = useTransition()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -220,22 +234,23 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
     startTransition(async () => { await deleteEvent(event.id!); onOpenChange(false) })
   }
 
-  const currentType = meetingTypes.find(m => m.id === meetingTypeId)
   const rangeText = prettyRange(startDate, startTime, endDate, endTime)
+  const currentTypeColor = meetingTypes.find(m => m.id === meetingTypeId)?.color ?? '#6366f1'
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 max-h-[92vh] overflow-y-auto [&>button]:hidden rounded-2xl bg-white border border-neutral-200 shadow-xl">
-        <div className="flex items-center justify-between px-5 h-12 border-b border-neutral-100 bg-white">
-          <button onClick={() => onOpenChange(false)} className="text-sm text-neutral-600 hover:text-neutral-900">Cancel</button>
-          <DialogTitle className="text-[15px] font-semibold text-neutral-900">{isEdit ? 'Edit event' : 'New event'}</DialogTitle>
-          <button onClick={handleSave} disabled={pending} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
-            {pending ? '...' : isEdit ? 'Save' : 'Add'}
-          </button>
-        </div>
+  const Body = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-5 h-12 border-b border-neutral-100 bg-white shrink-0">
+        <button onClick={() => onOpenChange(false)} className="text-sm text-neutral-600 hover:text-neutral-900">Cancel</button>
+        <div className="text-[15px] font-semibold text-neutral-900">{isEdit ? 'Edit event' : 'New event'}</div>
+        <button onClick={handleSave} disabled={pending} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+          {pending ? '...' : isEdit ? 'Save' : 'Add'}
+        </button>
+      </div>
 
-        <div className="bg-white">
-          <div className="px-5 py-3 border-b border-neutral-100">
+      <div className="bg-white overflow-y-auto flex-1">
+        <div className="px-5 py-3 border-b border-neutral-100 flex items-start gap-3">
+          <span className="h-3 w-3 rounded-full mt-2.5 shrink-0" style={{ background: currentTypeColor }} />
+          <div className="flex-1">
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
@@ -246,147 +261,171 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder="Location"
-              className="w-full mt-2 text-[14px] placeholder:text-neutral-400 border-0 focus:outline-none bg-transparent text-neutral-700"
+              className="w-full mt-1 text-[14px] placeholder:text-neutral-400 border-0 focus:outline-none bg-transparent text-neutral-700"
             />
           </div>
-
-          <div className="px-5 py-3 border-b border-neutral-100 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[14px] text-neutral-700">Starts</span>
-              <div className="flex items-center gap-2">
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-[14px] text-neutral-900 bg-transparent border-0 focus:outline-none tabular-nums" />
-                <Select value={startTime} onValueChange={setStartTime}>
-                  <SelectTrigger className="h-7 w-[100px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-                  <SelectContent className="max-h-64">
-                    {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{formatTimeLabel(t)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[14px] text-neutral-700">Ends</span>
-              <div className="flex items-center gap-2">
-                <input type="date" value={endDate} onChange={e => onEndDateChange(e.target.value)} className="text-[14px] text-neutral-900 bg-transparent border-0 focus:outline-none tabular-nums" />
-                <Select value={endTime} onValueChange={onEndTimeChange}>
-                  <SelectTrigger className="h-7 w-[100px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-                  <SelectContent className="max-h-64">
-                    {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{formatTimeLabel(t)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {rangeText && <p className="text-[12px] text-neutral-500">{rangeText}</p>}
-            {checkingConflicts && <p className="text-[12px] text-neutral-500 flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> Checking...</p>}
-          </div>
-
-          {conflicts.length > 0 && (
-            <div className="px-5 py-3 border-b border-neutral-100 bg-amber-50/60">
-              <div className="flex items-center gap-2 text-amber-900 font-medium text-[13px] mb-2">
-                <AlertTriangle className="h-3.5 w-3.5" /> Overlaps with {conflicts.length} event{conflicts.length > 1 ? 's' : ''}
-              </div>
-              <ul className="text-[12px] text-amber-900 space-y-0.5 mb-2">
-                {conflicts.map(c => {
-                  const s = DateTime.fromISO(c.starts_at, { zone: 'utc' }).setZone(TZ)
-                  const en = DateTime.fromISO(c.ends_at, { zone: 'utc' }).setZone(TZ)
-                  return <li key={c.id}>• <span className="font-medium">{c.title}</span> {s.toFormat('h:mm a')} – {en.toFormat('h:mm a')}</li>
-                })}
-              </ul>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={handleSuggestAlternatives} disabled={suggesting} className="text-[12px] font-medium text-amber hover:text-amber-950 flex items-center gap-1">
-                  {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Suggest times
-                </button>
-                <label className="flex items-center gap-1.5 text-[12px] text-amber-900 cursor-pointer">
-                  <input type="checkbox" checked={overrideConflict} onChange={e => setOverrideConflict(e.target.checked)} /> Book anyway
-                </label>
-              </div>
-              {alternatives.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {alternatives.map((a, i) => (
-                    <button key={i} type="button" onClick={() => applyAlternative(a)} className="px-2.5 py-1 rounded-md bg-white border border-amber-200 text-[11.5px] font-medium text-amber-900 hover:bg-amber-100">
-                      {DateTime.fromISO(a).setZone(TZ).toFormat('EEE LLL d, h:mm a')}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <Row label="Type">
-            <Select value={meetingTypeId} onValueChange={setMeetingTypeId}>
-              <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200">
-                <SelectValue placeholder="Choose" />
-              </SelectTrigger>
-              <SelectContent>
-                {meetingTypes.map(mt => (
-                  <SelectItem key={mt.id} value={mt.id}>
-                    <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: mt.color }} />{mt.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Row>
-
-          <Row label="Status">
-            <Select value={busyLevel} onValueChange={setBusyLevel}>
-              <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="tentative">Tentative</SelectItem>
-                <SelectItem value="busy">Busy</SelectItem>
-                <SelectItem value="out_of_office">Out of office</SelectItem>
-                <SelectItem value="confidential">Confidential</SelectItem>
-              </SelectContent>
-            </Select>
-          </Row>
-
-          <Row label="Repeat">
-            <Select value={recurrence} onValueChange={setRecurrence}>
-              <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Never</SelectItem>
-                <SelectItem value="daily">Every day</SelectItem>
-                <SelectItem value="weekdays">Every weekday</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="biweekly">Every 2 weeks</SelectItem>
-                <SelectItem value="monthly_date">Monthly</SelectItem>
-                <SelectItem value="monthly_weekday">Monthly (same weekday)</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
-          </Row>
-
-          <Row label="Visibility">
-            <Select value={visibility} onValueChange={setVisibility}>
-              <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
-                <SelectItem value="confidential">Confidential</SelectItem>
-                <SelectItem value="public">Public</SelectItem>
-              </SelectContent>
-            </Select>
-          </Row>
-
-          <div className="px-5 py-3 border-b border-neutral-100">
-            <Textarea
-              rows={2}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Notes"
-              className="resize-none border-0 px-0 py-0 focus:ring-0 focus-visible:ring-0 shadow-none text-[14px] placeholder:text-neutral-400"
-            />
-          </div>
-
-          {error && <div className="px-5 py-2 bg-red-50 border-b border-red-100 text-[13px] text-red-700">{error}</div>}
-
-          {isEdit && (
-            <div className="px-5 py-3">
-              <button type="button" onClick={handleDelete} disabled={pending} className="text-[14px] text-red-600 hover:text-red-700 flex items-center gap-1.5">
-                <Trash2 className="h-3.5 w-3.5" /> Delete event
-              </button>
-            </div>
-          )}
         </div>
+
+        <div className="px-5 py-3 border-b border-neutral-100 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[14px] text-neutral-700">Starts</span>
+            <div className="flex items-center gap-2">
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-[14px] text-neutral-900 bg-transparent border-0 focus:outline-none tabular-nums" />
+              <Select value={startTime} onValueChange={setStartTime}>
+                <SelectTrigger className="h-7 w-[100px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{formatTimeLabel(t)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[14px] text-neutral-700">Ends</span>
+            <div className="flex items-center gap-2">
+              <input type="date" value={endDate} onChange={e => onEndDateChange(e.target.value)} className="text-[14px] text-neutral-900 bg-transparent border-0 focus:outline-none tabular-nums" />
+              <Select value={endTime} onValueChange={onEndTimeChange}>
+                <SelectTrigger className="h-7 w-[100px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{formatTimeLabel(t)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {rangeText && <p className="text-[12px] text-neutral-500">{rangeText}</p>}
+          {checkingConflicts && <p className="text-[12px] text-neutral-500 flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> Checking...</p>}
+        </div>
+
+        {conflicts.length > 0 && (
+          <div className="px-5 py-3 border-b border-neutral-100 bg-amber-50/60">
+            <div className="flex items-center gap-2 text-amber-900 font-medium text-[13px] mb-2">
+              <AlertTriangle className="h-3.5 w-3.5" /> Overlaps with {conflicts.length} event{conflicts.length > 1 ? 's' : ''}
+            </div>
+            <ul className="text-[12px] text-amber-900 space-y-0.5 mb-2">
+              {conflicts.map(c => {
+                const s = DateTime.fromISO(c.starts_at, { zone: 'utc' }).setZone(TZ)
+                const en = DateTime.fromISO(c.ends_at, { zone: 'utc' }).setZone(TZ)
+                return <li key={c.id}>• <span className="font-medium">{c.title}</span> {s.toFormat('h:mm a')} – {en.toFormat('h:mm a')}</li>
+              })}
+            </ul>
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={handleSuggestAlternatives} disabled={suggesting} className="text-[12px] font-medium text-amber-900 hover:text-amber-950 flex items-center gap-1">
+                {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Suggest times
+              </button>
+              <label className="flex items-center gap-1.5 text-[12px] text-amber-900 cursor-pointer">
+                <input type="checkbox" checked={overrideConflict} onChange={e => setOverrideConflict(e.target.checked)} /> Book anyway
+              </label>
+            </div>
+            {alternatives.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {alternatives.map((a, i) => (
+                  <button key={i} type="button" onClick={() => applyAlternative(a)} className="px-2.5 py-1 rounded-md bg-white border border-amber-200 text-[11.5px] font-medium text-amber-900 hover:bg-amber-100">
+                    {DateTime.fromISO(a).setZone(TZ).toFormat('EEE LLL d, h:mm a')}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <Row label="Type">
+          <Select value={meetingTypeId} onValueChange={setMeetingTypeId}>
+            <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200">
+              <SelectValue placeholder="Choose" />
+            </SelectTrigger>
+            <SelectContent>
+              {meetingTypes.map(mt => (
+                <SelectItem key={mt.id} value={mt.id}>
+                  <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: mt.color }} />{mt.name}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Row>
+
+        <Row label="Status">
+          <Select value={busyLevel} onValueChange={setBusyLevel}>
+            <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="free">Free</SelectItem>
+              <SelectItem value="tentative">Tentative</SelectItem>
+              <SelectItem value="busy">Busy</SelectItem>
+              <SelectItem value="out_of_office">Out of office</SelectItem>
+              <SelectItem value="confidential">Confidential</SelectItem>
+            </SelectContent>
+          </Select>
+        </Row>
+
+        <Row label="Repeat">
+          <Select value={recurrence} onValueChange={setRecurrence}>
+            <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Never</SelectItem>
+              <SelectItem value="daily">Every day</SelectItem>
+              <SelectItem value="weekdays">Every weekday</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+              <SelectItem value="monthly_date">Monthly</SelectItem>
+              <SelectItem value="monthly_weekday">Monthly (same weekday)</SelectItem>
+              <SelectItem value="yearly">Yearly</SelectItem>
+            </SelectContent>
+          </Select>
+        </Row>
+
+        <Row label="Visibility">
+          <Select value={visibility} onValueChange={setVisibility}>
+            <SelectTrigger className="h-7 min-w-[140px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="confidential">Confidential</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+            </SelectContent>
+          </Select>
+        </Row>
+
+        <div className="px-5 py-3 border-b border-neutral-100">
+          <Textarea
+            rows={2}
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Notes"
+            className="resize-none border-0 px-0 py-0 focus:ring-0 focus-visible:ring-0 shadow-none text-[14px] placeholder:text-neutral-400"
+          />
+        </div>
+
+        {error && <div className="px-5 py-2 bg-red-50 border-b border-red-100 text-[13px] text-red-700">{error}</div>}
+
+        {isEdit && (
+          <div className="px-5 py-3 pb-6">
+            <button type="button" onClick={handleDelete} disabled={pending} className="text-[14px] text-red-600 hover:text-red-700 flex items-center gap-1.5">
+              <Trash2 className="h-3.5 w-3.5" /> Delete event
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          side="bottom"
+          className="h-[88vh] p-0 rounded-t-3xl bg-white border-0 [&>button]:hidden overflow-hidden"
+        >
+          <SheetTitle className="sr-only">{isEdit ? 'Edit event' : 'New event'}</SheetTitle>
+          <div className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-neutral-300" />
+          {Body}
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md p-0 gap-0 max-h-[92vh] overflow-hidden [&>button]:hidden rounded-2xl bg-white border border-neutral-200 shadow-xl">
+        <DialogTitle className="sr-only">{isEdit ? 'Edit event' : 'New event'}</DialogTitle>
+        {Body}
       </DialogContent>
     </Dialog>
   )

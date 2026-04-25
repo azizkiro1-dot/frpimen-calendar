@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Calendar, LogOut, CheckSquare, MessageSquare, LayoutDashboard, Users } from 'lucide-react'
 import { SharingManager } from '@/components/sharing-manager'
-import { AppHeader } from '@/components/app-header'
+import { AppSidebar } from '@/components/app-sidebar'
 
 export default async function SharingPage() {
   const supabase = await createClient()
@@ -19,12 +19,14 @@ export default async function SharingPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <AppHeader userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
+    <div className="min-h-screen bg-neutral-50">
+      <AppSidebar userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
 
+      <div className="md:pl-64 transition-[padding] duration-200">
       <main className="max-w-4xl mx-auto px-4 py-6">
         <SharingManager shares={shares ?? []} />
       </main>
+      </div>
     </div>
   )
 }
