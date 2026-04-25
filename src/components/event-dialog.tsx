@@ -236,8 +236,8 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
               <span className="text-xs uppercase tracking-wide text-slate-500">When</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input type="datetime-local" value={starts} onChange={e => setStarts(e.target.value)} />
-              <Input type="datetime-local" value={ends} onChange={e => setEnds(e.target.value)} />
+              <Input type="datetime-local" step={900} value={starts} onChange={e => setStarts(e.target.value)} />
+              <Input type="datetime-local" step={900} value={ends} onChange={e => setEnds(e.target.value)} />
             </div>
             {starts && ends && (
               <p className="text-xs text-slate-500">

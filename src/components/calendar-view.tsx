@@ -93,7 +93,7 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
           dayMaxEvents={3}
           editable
           selectable
-          timeZone={process.env.NEXT_PUBLIC_APP_TIMEZONE || 'America/Chicago'}
+          timeZone="America/Chicago"
           datesSet={(arg) => setTitle(arg.view.title)}
           eventClick={(info) => onEventClick?.(info.event.id)}
           dateClick={(info) => onDateClick?.(info.date)}
