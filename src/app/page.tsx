@@ -26,7 +26,8 @@ export default async function HomePage() {
   const rawEvents = eventsResp.data ?? []
   const meetingTypes = typesResp.data ?? []
 
-  const calendarEvents: CalendarEvent[] = rawEvents.map((e: any) => ({
+  const seen = new Set<string>()
+  const calendarEvents: CalendarEvent[] = (rawEvents as any[]).filter((e:any) => { if (seen.has(e.id)) return false; seen.add(e.id); return true }).map((e: any) => ({
     id: e.id,
     title: e.visibility === 'confidential' && e.owner_id !== user.id ? 'Busy' : e.title,
     start: ensureUtc(e.starts_at),
