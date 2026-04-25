@@ -17,6 +17,7 @@ export function BookingFlow({ slug, duration, availabilityDays }: { slug: string
   const [step, setStep] = useState<'date' | 'time' | 'form' | 'done'>('date')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -33,7 +34,7 @@ export function BookingFlow({ slug, duration, availabilityDays }: { slug: string
   const submit = async () => {
     if (!selected || !time || !name || !email) return
     setSubmitting(true); setError('')
-    const r = await bookSlot(slug, selected, time, name, email, notes)
+    const r = await bookSlot(slug, selected, time, name, email, phone || undefined, notes || undefined)
     if ((r as any)?.error) { setError((r as any).error); setSubmitting(false) }
     else { setStep('done'); setSubmitting(false) }
   }
@@ -136,6 +137,7 @@ export function BookingFlow({ slug, duration, availabilityDays }: { slug: string
             <div className="space-y-3 mt-4">
               <Field label="Name" value={name} onChange={setName} required />
               <Field label="Email" value={email} onChange={setEmail} type="email" required />
+              <Field label="Phone (optional)" value={phone} onChange={setPhone} type="tel" />
               <Field label="Notes (optional)" value={notes} onChange={setNotes} multiline />
               {error && <p className="text-[13px] text-red-700">{error}</p>}
               <button

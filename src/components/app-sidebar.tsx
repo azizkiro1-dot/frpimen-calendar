@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import {
   Calendar, CheckSquare, MessageSquare, Users, LayoutDashboard,
-  Upload, LogOut, Menu, ChevronLeft, ChevronRight, HelpCircle, Settings as Cog, FileText, Link2, Plane,
+  Upload, LogOut, Menu, ChevronLeft, ChevronRight, HelpCircle, Settings as Cog, FileText, Link2, Plane, AlertTriangle,
 } from 'lucide-react'
 
 type NavItem = { href: string; label: string; icon: any; tone: string }
@@ -21,6 +21,7 @@ const nav: NavItem[] = [
   { href: '/rsvp',      label: 'Invites',  icon: Calendar,        tone: '#f97316' },
   { href: '/booking-links', label: 'Bookings', icon: Link2,            tone: '#0ea5e9' },
   { href: '/blocks',     label: 'Time off', icon: Plane,           tone: '#f43f5e' },
+  { href: '/conflicts',  label: 'Conflicts',icon: AlertTriangle,   tone: '#f97316' },
   { href: '/templates', label: 'Templates',icon: FileText,        tone: '#84cc16' },
   { href: '/sharing',   label: 'Sharing',   icon: Users,           tone: '#ec4899' },
   { href: '/import',    label: 'Import',    icon: Upload,          tone: '#06b6d4' },

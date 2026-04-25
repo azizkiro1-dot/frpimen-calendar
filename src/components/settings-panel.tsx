@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Bell, Trash2, AlertTriangle, Mail, User, Palette, MapPin, Save as SaveIcon } from 'lucide-react'
+import { Download, Bell, Trash2, AlertTriangle, Mail, User, Palette, MapPin, Save as SaveIcon, Building2 } from 'lucide-react'
 import { setDefaultLocation } from '@/app/actions/profile'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { PushToggle } from '@/components/push-toggle'

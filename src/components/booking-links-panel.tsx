@@ -133,6 +133,19 @@ export function BookingLinksPanel({ links, meetingTypes, defaultLocation }: { li
                 {l.location && <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3" /> {l.location}</span>}
               </div>
               <p className="text-[11.5px] text-neutral-400 font-mono mt-1.5 truncate">/book/{l.slug}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={() => {
+                const code = `<iframe src="${window.location.origin}/book/${l.slug}" width="100%" height="700" frameborder="0"></iframe>`
+                navigator.clipboard.writeText(code)
+                setCopied(`embed-${l.slug}`)
+                setTimeout(() => setCopied(null), 1500)
+              }}
+              className="text-[11.5px] font-medium px-2.5 py-1 rounded-full border border-neutral-200 bg-white hover:border-neutral-300 text-neutral-700"
+            >
+              {copied === `embed-${l.slug}` ? 'Embed copied' : 'Copy embed snippet'}
+            </button>
+          </div>
             </div>
             <button
               onClick={() => copyUrl(l.slug)}

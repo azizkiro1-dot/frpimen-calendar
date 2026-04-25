@@ -142,12 +142,11 @@ export async function getAvailableSlots(slug: string, dateStr: string): Promise<
 }
 
 // PUBLIC: book a slot
-export async function bookSlot(slug: string, dateStr: string, time: string, name: string, email: string, notes?: string) {
+export async function bookSlot(slug: string, dateStr: string, time: string, name: string, email: string, phone?: string, notes?: string) {
   const sb = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: link } = await sb.from('booking_links').select('*').eq('slug', slug).eq('active', true).single()
   if (!link) return { error: 'Link not found' }
 
-  // Re-verify slot still available
   const slots = await getAvailableSlots(slug, dateStr)
   if (!slots.includes(time)) return { error: 'Slot no longer available' }
 
@@ -169,13 +168,44 @@ export async function bookSlot(slug: string, dateStr: string, time: string, name
 
   if (error) return { error: error.message }
 
-  // Add the booker as attendee
-  await sb.from('event_attendees').insert({
+  const { data: attendee } = await sb.from('event_attendees').insert({
     event_id: event.id,
     email,
     rsvp_status: 'accepted',
     name,
-  })
+    phone: phone ?? null,
+    notes: notes ?? null,
+  }).select().single()
+
+  // Cancel token (HMAC-signed)
+  const crypto = await import('crypto')
+  const secret = process.env.CANCEL_SECRET ?? process.env.CRON_SECRET ?? 'fallback-rotate'
+  const sig = crypto.createHmac('sha256', secret).update(`${attendee?.id}:${event.id}`).digest('hex').slice(0, 32)
+  const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://frpimen-calendar.vercel.app'}/cancel/${attendee?.id}?sig=${sig}`
+
+  // Send emails via Resend (lazy)
+  const ownerEmail = await sb.from('profiles').select('full_name').eq('id', link.owner_id).single()
+  const dt = start.toFormat('cccc, LLLL d')
+  const tmRange = `${start.toFormat('h:mm a')} – ${end.toFormat('h:mm a')}`
+
+  try {
+    const { sendEmail } = await import('@/lib/email/send')
+    // Attendee confirmation
+    await sendEmail(
+      email,
+      `Confirmed: ${link.name} on ${dt}`,
+      `<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px"><h2 style="margin:0 0 8px">Booking confirmed</h2><p style="color:#525252;margin:0 0 20px">${link.name} with ${ownerEmail.data?.full_name ?? 'Fr. Pimen'}</p><div style="background:#f5f5f5;border-radius:14px;padding:18px;margin:16px 0"><div style="font-weight:600;font-size:18px">${dt}</div><div style="color:#525252;margin-top:4px">${tmRange}</div>${link.location ? `<div style="color:#525252;margin-top:6px">📍 ${link.location}</div>` : ''}</div><p style="font-size:13px;color:#737373">Need to cancel or reschedule? <a href="${cancelUrl}">Click here</a>.</p></div>`
+    )
+    // Notify priest — fetch their email
+    const { data: { user: ownerUser } } = await sb.auth.admin.getUserById(link.owner_id)
+    if (ownerUser?.email) {
+      await sendEmail(
+        ownerUser.email,
+        `New booking: ${link.name} — ${name}`,
+        `<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px"><h2>${name} booked ${link.name}</h2><div style="background:#f5f5f5;border-radius:14px;padding:18px;margin:16px 0"><div style="font-weight:600">${dt}</div><div style="color:#525252">${tmRange}</div>${link.location ? `<div style="color:#525252;margin-top:4px">📍 ${link.location}</div>` : ''}</div><p>📧 ${email}${phone ? `<br>📞 ${phone}` : ''}</p>${notes ? `<p style="color:#525252;font-size:13px"><strong>Notes:</strong> ${notes}</p>` : ''}</div>`
+      )
+    }
+  } catch (e) { console.error('email send failed', e) }
 
   return { success: true, eventId: event.id }
 }
