@@ -76,7 +76,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-neutral-50">
       <AppSidebar userName={profile?.full_name ?? user.email ?? ''} userEmail={user.email ?? ''} />
 
-      <div className="md:pl-64 transition-[padding] duration-200">
+      <div className="lg:pl-64 transition-[padding] duration-200">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
           {/* Hero card */}
           <div className="rounded-3xl p-6 sm:p-8 relative overflow-hidden border border-neutral-200/80 shadow-sm bg-white">

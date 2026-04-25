@@ -17,7 +17,7 @@ export default async function ImportPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <AppSidebar userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
-      <div className="md:pl-64 transition-[padding] duration-200">
+      <div className="lg:pl-64 transition-[padding] duration-200">
       <main className="max-w-2xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-2">
           <Upload className="h-6 w-6 text-slate-700" />

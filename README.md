@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fr. Pimen Calendar
 
-## Getting Started
+Private calendar + tasks app for Fr. Pimen. Single-user license.
 
-First, run the development server:
+## Stack
+- Next.js 16 (App Router, Turbopack)
+- React 19, TypeScript
+- Supabase (auth + Postgres)
+- shadcn/ui + Tailwind CSS 4
+- Framer Motion
+- FullCalendar 6 + Luxon
+- Anthropic Claude (chat)
+- Resend (email)
+- web-push (notifications)
+- Vercel deploy
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Required env vars
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+ANTHROPIC_API_KEY=
+RESEND_API_KEY=
+CRON_SECRET=               # random string for /api/cron/* auth
+ALLOWED_EMAILS=            # comma-separated; only these may sign in
+VAPID_PUBLIC_KEY=          # web-push (run `npx web-push generate-vapid-keys`)
+VAPID_PRIVATE_KEY=
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=  # same as VAPID_PUBLIC_KEY (client uses it)
+VAPID_SUBJECT=mailto:you@example.com
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## First-run
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Provision Supabase project, run `supabase-migrations.sql` in SQL editor
+2. Run `npx web-push generate-vapid-keys` and add the keys to Vercel env
+3. In Supabase Auth settings, enable Google provider, add `https://YOUR_DOMAIN/auth/callback` to allowed redirect URLs
+4. In Vercel, set every env var above
+5. `git push` — Vercel auto-deploys
+6. Sign in once with the priest's Gmail (must match `ALLOWED_EMAILS`)
+7. After deploy, run DB cleanup once (browser console on the app):
+   ```js
+   fetch('/api/admin/dedup-events',{method:'POST'}).then(r=>r.json()).then(console.log)
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Routes
+- `/`           Calendar (month/week/day/agenda)
+- `/dashboard`  Stats + today's schedule + types breakdown
+- `/tasks`      Card-grid task manager
+- `/chat`       Claude assistant (knows your schedule)
+- `/sharing`    Grant/revoke calendar access (4 tiers)
+- `/rsvp`       Respond to invites where you're an attendee
+- `/import`     Calendly CSV import
+- `/privacy`    Privacy policy
+- `/terms`      Terms of use
 
-## Learn More
+## Cron jobs (Vercel)
+- `0 12 * * *`  Daily summary email (7am Central)
+- `*/5 * * * *` Reminder push notifications (15-min lead time)
 
-To learn more about Next.js, take a look at the following resources:
+Both require header `Authorization: Bearer $CRON_SECRET`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Single-tenant lockdown
+- `ALLOWED_EMAILS` env var gates `/auth/callback` and `middleware.ts`
+- Any non-allowed email is signed out and redirected to `/login?error=not_authorized`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Local dev
 
-## Deploy on Vercel
+```
+npm install
+npm run dev          # turbopack, port 3000
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Build
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+npm run build
+```
+
+## Database hardening
+See `supabase-migrations.sql` for indexes + RLS confirmation.
+
+## Support
+For issues, check Vercel logs first, then Supabase logs. The app is a single-user deployment; expect low traffic and predictable behavior.

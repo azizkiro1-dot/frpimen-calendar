@@ -4,11 +4,28 @@ import { createClient } from '@/lib/supabase/server'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
+const rateLimitMap = new Map<string, { count: number; ts: number }>()
+const RATE_WINDOW_MS = 60_000
+const RATE_MAX = 20
+function checkRateLimit(uid: string): boolean {
+  const now = Date.now()
+  const slot = rateLimitMap.get(uid)
+  if (!slot || now - slot.ts > RATE_WINDOW_MS) {
+    rateLimitMap.set(uid, { count: 1, ts: now })
+    return true
+  }
+  if (slot.count >= RATE_MAX) return false
+  slot.count++
+  return true
+}
+
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!checkRateLimit(user.id)) return NextResponse.json({ error: 'Too many requests. Try again in a moment.' }, { status: 429 })
 
     const body = await req.json()
     const messages: { role: 'user' | 'assistant'; content: string }[] = body.messages ?? []

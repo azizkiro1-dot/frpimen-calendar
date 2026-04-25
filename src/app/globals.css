@@ -308,3 +308,31 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .fc-col-header-cell-cushion { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #737373; padding: 8px; }
 .fc-timegrid-now-indicator-line { border-color: #ef4444 !important; border-width: 2px !important; }
 .fc-timegrid-now-indicator-arrow { border-color: #ef4444 !important; }
+
+/* Foldable phones (Pixel Fold closed, Z Fold portrait) — narrowest mobile */
+@media (max-width: 360px) {
+  .fc-toolbar-title, h1 { font-size: 1.25rem !important; }
+  h1.text-3xl, h1.text-5xl { font-size: 1.6rem !important; }
+  .fc-event { font-size: 10px !important; }
+  .fc-daygrid-day-number { font-size: 11px !important; padding: 2px 4px !important; }
+  body { font-size: 14px; }
+}
+
+/* Tablet portrait (iPad mini, foldable open inner) */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .max-w-7xl { max-width: 100% !important; }
+  h1.text-5xl { font-size: 2.5rem; }
+  .fc-toolbar-title { font-size: 1.5rem; }
+}
+
+/* Foldable open landscape / large tablet */
+@media (min-width: 700px) and (max-width: 1023px) and (orientation: landscape) {
+  .fc-timegrid-slot { height: 2.6em !important; }
+  .grid-cols-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Big touch targets across mobile/tablet */
+@media (max-width: 1023px) {
+  button, a { min-height: 36px; }
+  .fc-button { min-height: 36px; }
+}

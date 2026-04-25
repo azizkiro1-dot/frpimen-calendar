@@ -22,7 +22,7 @@ export default async function SharingPage() {
     <div className="min-h-screen bg-neutral-50">
       <AppSidebar userName={profile?.full_name ?? user.email ?? ""} userEmail={user.email ?? ""} />
 
-      <div className="md:pl-64 transition-[padding] duration-200">
+      <div className="lg:pl-64 transition-[padding] duration-200">
       <main className="max-w-4xl mx-auto px-4 py-6">
         <SharingManager shares={shares ?? []} />
       </main>

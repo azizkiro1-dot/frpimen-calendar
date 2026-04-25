@@ -18,6 +18,7 @@ const nav: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, tone: '#3b82f6' },
   { href: '/tasks',     label: 'Tasks',     icon: CheckSquare,     tone: '#10b981' },
   { href: '/chat',      label: 'Chat',      icon: MessageSquare,   tone: '#8b5cf6' },
+  { href: '/rsvp',      label: 'Invites',  icon: Calendar,        tone: '#f97316' },
   { href: '/sharing',   label: 'Sharing',   icon: Users,           tone: '#ec4899' },
   { href: '/import',    label: 'Import',    icon: Upload,          tone: '#06b6d4' },
 ]
@@ -62,8 +63,8 @@ export function AppSidebar({ userName, userEmail }: Props) {
     <>
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-40 bg-white border-r border-neutral-200 transition-all duration-200
-        ${collapsed ? 'md:w-16' : 'md:w-64'}`}
+        className={`hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 bg-white border-r border-neutral-200 transition-all duration-200
+        ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}
       >
         <div className="px-4 py-4 border-b border-neutral-100 flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-pink-500 flex items-center justify-center shrink-0">
@@ -101,7 +102,7 @@ export function AppSidebar({ userName, userEmail }: Props) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="md:hidden border-b bg-white sticky top-0 z-30">
+      <header className="lg:hidden border-b bg-white sticky top-0 z-30">
         <div className="px-4 py-3 flex items-center justify-between gap-3">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

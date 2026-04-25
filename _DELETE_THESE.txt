@@ -1,1 +1,1 @@
-src/components/mobile/bottom-nav.tsx
+src/middleware.ts
