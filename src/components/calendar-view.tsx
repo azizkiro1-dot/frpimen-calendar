@@ -47,8 +47,9 @@ const dayGradients = [
   'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)',
 ]
 
-export function CalendarView({ events, onEventClick, onDateClick, onCreateClick }: Props) {
+export function CalendarView({ events: events, onEventClick, onDateClick, onCreateClick }: Props) {
   const calendarRef = useRef<FullCalendar | null>(null)
+  if (typeof window !== 'undefined' && events[0]) (window as any).DEBUG_TZ_CLIENT = events[0]
   const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
   const [title, setTitle] = useState('')
 

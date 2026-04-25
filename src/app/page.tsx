@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ export default async function HomePage() {
   const meetingTypes = typesResp.data ?? []
 
   const seen = new Set<string>()
+  if (rawEvents[0]) console.log('DEBUG_TZ raw=', rawEvents[0].starts_at, '-> ensureUtc=', ensureUtc(rawEvents[0].starts_at))
   const calendarEvents: CalendarEvent[] = (rawEvents as any[]).filter((e:any) => { if (seen.has(e.id)) return false; seen.add(e.id); return true }).map((e: any) => ({
     id: e.id,
     title: e.visibility === 'confidential' && e.owner_id !== user.id ? 'Busy' : e.title,
@@ -98,6 +100,10 @@ function msDiff(a: string, b: string): { milliseconds: number } {
 
 function ensureUtc(s: string | null | undefined): string {
   if (!s) return s as any
-  if (/[zZ]|[+-]\d\d:?\d\d$/.test(s)) return s
-  return s + 'Z'
+  // Try Luxon first — handles all ISO and Postgres formats
+  const { DateTime } = require('luxon')
+  let dt = DateTime.fromISO(s, { setZone: true })
+  if (!dt.isValid) dt = DateTime.fromSQL(s, { zone: 'utc' })
+  if (!dt.isValid) dt = DateTime.fromJSDate(new Date(s))
+  return dt.isValid ? dt.toUTC().toISO()! : s
 }
