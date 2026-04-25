@@ -9,7 +9,7 @@ export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('full_name, default_location').eq('id', user.id).single()
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -19,7 +19,7 @@ export default async function SettingsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="text-sm text-neutral-600 mt-1.5">Manage your account, data, and notifications</p>
           <div className="mt-6">
-            <SettingsPanel email={user.email ?? ''} name={profile?.full_name ?? ''} />
+            <SettingsPanel email={user.email ?? ''} name={profile?.full_name ?? ''} defaultLocation={profile?.default_location ?? ''} />
           </div>
         </main>
       </div>

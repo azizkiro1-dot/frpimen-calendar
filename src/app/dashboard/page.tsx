@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { DateTime } from 'luxon'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, CheckSquare, Clock, TrendingUp } from 'lucide-react'
+import { Calendar, CheckSquare, Clock, TrendingUp, AlertTriangle } from 'lucide-react'
+import { runConflictReport } from '@/app/actions/conflict-report'
 
 const TZ = 'America/Chicago'
 
@@ -113,6 +114,32 @@ export default async function DashboardPage() {
             })}
           </div>
 
+
+          {/* Conflict report */}
+          {await (async () => {
+            const report = await runConflictReport(30)
+            if (report.conflicts.length === 0) return null
+            return (
+              <div className="rounded-2xl bg-white border border-amber-200 p-5 sm:p-6 relative overflow-hidden">
+                <div className="flex items-start gap-3">
+                  <span className="h-9 w-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="h-4 w-4" />
+                  </span>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[15px]">Schedule conflicts</h3>
+                    <p className="text-[13px] text-neutral-600 mt-0.5">Found {report.conflicts.length} conflicts in the next 30 days.</p>
+                    {report.suggestion && <p className="text-[12.5px] text-neutral-700 mt-2 leading-relaxed">{report.suggestion}</p>}
+                    <ul className="mt-3 space-y-1 text-[12.5px] text-neutral-700">
+                      {report.conflicts.slice(0, 5).map((c, i) => (
+                        <li key={i}>• <strong>{c.a.title}</strong> overlaps <strong>{c.b.title}</strong> on {new Date(c.a.starts_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Chicago' })}</li>
+                      ))}
+                      {report.conflicts.length > 5 && <li className="text-neutral-500">…and {report.conflicts.length - 5} more</li>}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
           {/* Body */}
           <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
             <div className="rounded-2xl bg-white border border-neutral-200/80 p-5 sm:p-6">

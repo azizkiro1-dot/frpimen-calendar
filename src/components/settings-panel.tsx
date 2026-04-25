@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Bell, Trash2, AlertTriangle, Mail, User, Palette } from 'lucide-react'
+import { Download, Bell, Trash2, AlertTriangle, Mail, User, Palette, MapPin, Save as SaveIcon } from 'lucide-react'
+import { setDefaultLocation } from '@/app/actions/profile'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { PushToggle } from '@/components/push-toggle'
 
-export function SettingsPanel({ email, name }: { email: string; name: string }) {
+export function SettingsPanel({ email, name, defaultLocation = '' }: { email: string; name: string; defaultLocation?: string }) {
   const [busy, setBusy] = useState(false)
   const [confirmText, setConfirmText] = useState('')
   const [showDelete, setShowDelete] = useState(false)
@@ -62,6 +63,17 @@ export function SettingsPanel({ email, name }: { email: string; name: string }) 
         <div className="px-5 py-4 flex items-center justify-between">
           <span className="text-[14px] text-neutral-700">Theme</span>
           <ThemeToggle />
+        </div>
+      </Card>
+
+      {/* Default location */}
+      <Card>
+        <SectionHead icon={MapPin} title="Default location" />
+        <div className="px-5 py-4">
+          <p className="text-[13px] text-neutral-600 mb-3">
+            Pre-fills the location field on new events.
+          </p>
+          <DefaultLocationField initial={defaultLocation} />
         </div>
       </Card>
 
@@ -207,6 +219,24 @@ function FeedUrl() {
       <input readOnly value={url} className="w-full text-[12px] font-mono px-3 py-2 rounded-lg border border-neutral-200 bg-neutral-50" onFocus={e => e.currentTarget.select()} />
       <button onClick={copy} className="text-[12.5px] font-medium text-neutral-700 hover:text-neutral-900 px-3 py-1.5 rounded-full border border-neutral-200 bg-white">
         {copied ? 'Copied' : 'Copy URL'}
+      </button>
+    </div>
+  )
+}
+
+
+function DefaultLocationField({ initial }: { initial: string }) {
+  const [val, setVal] = useState(initial)
+  const [saved, setSaved] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const save = async () => { setBusy(true); await setDefaultLocation(val); if (typeof window !== 'undefined') localStorage.setItem('frpimen_default_location', val); setSaved(true); setBusy(false); setTimeout(() => setSaved(false), 1500) }
+  return (
+    <div className="flex items-center gap-2">
+      <input value={val} onChange={e => setVal(e.target.value)}
+             placeholder="205 S Church St, Prosper, TX 75078"
+             className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-400 text-[14px]" />
+      <button onClick={save} disabled={busy} className="text-[13px] font-medium text-neutral-700 hover:text-neutral-900 px-3 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 bg-white flex items-center gap-1.5">
+        <SaveIcon className="h-3.5 w-3.5" /> {busy ? 'Saving…' : saved ? 'Saved' : 'Save'}
       </button>
     </div>
   )

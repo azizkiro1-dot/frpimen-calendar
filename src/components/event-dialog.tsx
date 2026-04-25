@@ -153,7 +153,8 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       const defaultType = meetingTypes[0]
       const durMin = defaultType?.default_duration_minutes ?? 60
       const endDt = startDt.plus({ minutes: durMin })
-      setTitle(''); setDescription(''); setLocation('')
+      setTitle(''); setDescription('')
+      setLocation((typeof window !== 'undefined' && localStorage.getItem('frpimen_default_location')) || '')
       setStartDate(startDt.toFormat('yyyy-LL-dd'))
       setStartTime(startDt.toFormat('HH:mm'))
       setEndDate(endDt.toFormat('yyyy-LL-dd'))

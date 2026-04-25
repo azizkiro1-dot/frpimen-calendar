@@ -18,6 +18,7 @@ export function OnboardingTour() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    fetch('/api/profile').then(r => r.json()).then(j => { if (j.default_location) localStorage.setItem('frpimen_default_location', j.default_location) }).catch(() => {})
     const seen = localStorage.getItem('frpimen_onboarded')
     if (!seen) {
       // Seed default meeting types on first run
