@@ -1,46 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Calendar, LogOut, CheckSquare, MessageSquare, LayoutDashboard, Users } from 'lucide-react'
-import Link from 'next/link'
-import { CalendarPage } from '@/components/calendar-page'
-import { SyncButton } from '@/components/sync-button'
-import type { CalendarEvent } from '@/components/calendar-view'
+import { SharingManager } from '@/components/sharing-manager'
 
-export default async function HomePage() {
+export default async function SharingPage() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [profileResp, eventsResp, typesResp] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('events').select('*, meeting_types(id, name, color)').order('starts_at'),
-    supabase.from('meeting_types').select('*').eq('owner_id', user.id).order('name'),
-  ])
-
-  const profile = profileResp.data
-  const rawEvents = eventsResp.data ?? []
-  const meetingTypes = typesResp.data ?? []
-
-  const calendarEvents: CalendarEvent[] = rawEvents.map((e: any) => ({
-    id: e.id,
-    title: e.visibility === 'confidential' && e.owner_id !== user.id ? 'Busy' : e.title,
-    start: e.starts_at,
-    end: e.ends_at,
-    allDay: e.all_day,
-    backgroundColor: e.meeting_types?.color ?? '#3b82f6',
-    borderColor: e.meeting_types?.color ?? '#3b82f6',
-    extendedProps: {
-      busy_level: e.busy_level,
-      visibility: e.visibility,
-      meeting_type: e.meeting_types?.name,
-      location: e.location,
-      description: e.description,
-    },
-  }))
+  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+  const { data: shares } = await supabase
+    .from('calendar_shares')
+    .select('*')
+    .eq('owner_id', user.id)
+    .order('created_at', { ascending: false })
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -57,13 +32,10 @@ export default async function HomePage() {
             <Link href="/tasks"><Button variant="ghost" size="sm"><CheckSquare className="h-4 w-4 mr-2"/>Tasks</Button></Link>
             <Link href="/chat"><Button variant="ghost" size="sm"><MessageSquare className="h-4 w-4 mr-2"/>Chat</Button></Link>
             <Link href="/dashboard"><Button variant="ghost" size="sm"><LayoutDashboard className="h-4 w-4 mr-2"/>Dashboard</Button></Link>
-            <Link href="/sharing"><Button variant="ghost" size="sm"><Users className="h-4 w-4 mr-2"/>Sharing</Button></Link>
+            <Link href="/sharing"><Button variant="secondary" size="sm"><Users className="h-4 w-4 mr-2"/>Sharing</Button></Link>
           </nav>
           <div className="flex items-center gap-3">
-            <SyncButton />
-            <span className="text-sm text-slate-600 hidden sm:inline">
-              {profile?.full_name ?? user.email}
-            </span>
+            <span className="text-sm text-slate-600 hidden sm:inline">{profile?.full_name ?? user.email}</span>
             <form action="/auth/logout" method="post">
               <Button variant="outline" size="sm" type="submit">
                 <LogOut className="h-4 w-4 sm:mr-2" />
@@ -74,12 +46,8 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <CalendarPage
-          events={calendarEvents}
-          rawEvents={rawEvents}
-          meetingTypes={meetingTypes}
-        />
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        <SharingManager shares={shares ?? []} />
       </main>
     </div>
   )
