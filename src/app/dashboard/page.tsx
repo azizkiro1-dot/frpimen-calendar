@@ -24,27 +24,27 @@ export default async function DashboardPage() {
   const { data: todayEvents } = await supabase
     .from('events').select('*, meeting_types(name, color)')
     .eq('owner_id', user.id)
-    .gte('start_time', startToday.toISOString())
-    .lte('start_time', endToday.toISOString())
-    .order('start_time')
+    .gte('starts_at', startToday.toISOString())
+    .lte('starts_at', endToday.toISOString())
+    .order('starts_at')
 
   const { data: next7 } = await supabase
     .from('events').select('id')
     .eq('owner_id', user.id)
-    .gte('start_time', now.toISOString())
-    .lte('start_time', in7.toISOString())
+    .gte('starts_at', now.toISOString())
+    .lte('starts_at', in7.toISOString())
 
   const { data: next30 } = await supabase
     .from('events').select('id, meeting_type_id, meeting_types(name, color)')
     .eq('owner_id', user.id)
-    .gte('start_time', now.toISOString())
-    .lte('start_time', in30.toISOString())
+    .gte('starts_at', now.toISOString())
+    .lte('starts_at', in30.toISOString())
 
   const { data: past30 } = await supabase
     .from('events').select('id')
     .eq('owner_id', user.id)
-    .gte('start_time', last30.toISOString())
-    .lt('start_time', now.toISOString())
+    .gte('starts_at', last30.toISOString())
+    .lt('starts_at', now.toISOString())
 
   const { data: openTasks } = await supabase
     .from('tasks').select('id').eq('owner_id', user.id).eq('status', 'open')
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
                   <li key={e.id} className="flex items-center gap-3 text-sm">
                     <span className="h-2 w-2 rounded-full" style={{ background: e.meeting_types?.color ?? '#64748b' }} />
                     <span className="font-medium">{e.title}</span>
-                    <span className="text-slate-500 ml-auto">{new Date(e.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
+                    <span className="text-slate-500 ml-auto">{new Date(e.starts_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
                   </li>
                 ))}
               </ul>
