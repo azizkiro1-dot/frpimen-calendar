@@ -6,13 +6,17 @@ export const dynamic = 'force-dynamic'
 
 export default async function BookPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const sb = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-  const { data: link } = await sb
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  console.log('[/book/'+slug+'] env present?', { url: !!url, key: !!key, urlLen: url?.length, keyLen: key?.length })
+  const sb = createServiceClient(url!, key!)
+  const { data: link, error } = await sb
     .from('booking_links')
     .select('*, meeting_types(name, color), profiles:owner_id(full_name)')
     .eq('slug', slug)
     .eq('active', true)
     .single()
+  console.log('[/book/'+slug+'] query result', { hasLink: !!link, error: error?.message })
 
   if (!link) notFound()
 
