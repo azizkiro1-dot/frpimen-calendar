@@ -29,10 +29,10 @@ export default async function HomePage() {
   const calendarEvents: CalendarEvent[] = rawEvents.map((e: any) => ({
     id: e.id,
     title: e.visibility === 'confidential' && e.owner_id !== user.id ? 'Busy' : e.title,
-    start: e.starts_at,
-    end: e.ends_at,
+    start: ensureUtc(e.starts_at),
+    end: ensureUtc(e.ends_at),
     allDay: e.all_day,
-    ...(e.rrule ? { rrule: { freq: parseFreq(e.rrule), dtstart: e.starts_at, ...parseRruleOptions(e.rrule) }, duration: msDiff(e.starts_at, e.ends_at) } : {}),
+    ...(e.rrule ? { rrule: { freq: parseFreq(e.rrule), dtstart: ensureUtc(e.starts_at), ...parseRruleOptions(e.rrule) }, duration: msDiff(e.starts_at, e.ends_at) } : {}),
     backgroundColor: e.meeting_types?.color ?? '#3b82f6',
     borderColor: e.meeting_types?.color ?? '#3b82f6',
     extendedProps: {
@@ -92,5 +92,11 @@ function parseWeekday(s: string): string | null {
 }
 
 function msDiff(a: string, b: string): { milliseconds: number } {
-  return { milliseconds: new Date(b).getTime() - new Date(a).getTime() }
+  return { milliseconds: new Date(ensureUtc(b)).getTime() - new Date(ensureUtc(a)).getTime() }
+}
+
+function ensureUtc(s: string | null | undefined): string {
+  if (!s) return s as any
+  if (/[zZ]|[+-]\d\d:?\d\d$/.test(s)) return s
+  return s + 'Z'
 }
