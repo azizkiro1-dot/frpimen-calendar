@@ -85,7 +85,7 @@ function prettyRange(startDate: string, startTime: string, endDate: string, endT
 
 export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDate }: Props) {
   const isEdit = !!event?.id
-  const [pg, startTransition] = useTransition()
+  const [pending, startTransition] = useTransition()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
