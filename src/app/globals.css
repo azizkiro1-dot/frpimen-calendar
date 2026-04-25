@@ -265,3 +265,53 @@
   background: transparent !important;
   border: none !important;
 }
+
+
+/* Global polish */
+body {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+.shadow-sm {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+.rounded-xl {
+  border-radius: 14px;
+}
+button, a {
+  transition: all 0.15s ease;
+}
+input, textarea, select {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Date picker style hint */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Scrollbar polish */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
