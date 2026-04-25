@@ -24,6 +24,8 @@ const nav: NavItem[] = [
   { href: '/templates', label: 'Templates',icon: FileText,        tone: '#84cc16' },
   { href: '/sharing',   label: 'Sharing',   icon: Users,           tone: '#ec4899' },
   { href: '/import',    label: 'Import',    icon: Upload,          tone: '#06b6d4' },
+  { href: '/help',      label: 'Help',     icon: HelpCircle,      tone: '#94a3b8' },
+  { href: '/settings',  label: 'Settings', icon: Cog,             tone: '#6b7280' },
 ]
 
 type Props = { userName: string; userEmail: string }
