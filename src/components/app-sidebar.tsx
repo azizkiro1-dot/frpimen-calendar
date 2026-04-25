@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
 import {
   Calendar, CheckSquare, MessageSquare, Users, LayoutDashboard,
   Upload, LogOut, Menu, ChevronLeft, ChevronRight,
@@ -37,7 +38,9 @@ export function AppSidebar({ userName, userEmail }: Props) {
         const active = isActive(item.href)
         return (
           <Link key={item.href} href={item.href} onClick={onClick}>
-            <div
+            <motion.div
+              whileHover={{ x: 2 }}
+              whileTap={{ scale: 0.97 }}
               className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition relative
               ${active ? 'bg-neutral-900 text-white' : 'text-neutral-700 hover:bg-neutral-100'}`}
               title={collapsed ? item.label : undefined}
@@ -48,7 +51,7 @@ export function AppSidebar({ userName, userEmail }: Props) {
               />
               <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-white' : 'text-neutral-500 group-hover:text-neutral-900'}`} />
               {!collapsed && <span className="font-medium">{item.label}</span>}
-            </div>
+            </motion.div>
           </Link>
         )
       })}

@@ -24,8 +24,10 @@ export default async function HomePage() {
 
   const seen = new Set<string>()
   const calendarEvents: CalendarEvent[] = (rawEvents as any[]).filter((e: any) => {
-    if (seen.has(e.id)) return false
-    seen.add(e.id)
+    // Dedup on title + start to catch Google sync duplicates with different ids
+    const key = `${(e.title ?? '').trim().toLowerCase()}|${e.starts_at}`
+    if (seen.has(key)) return false
+    seen.add(key)
     return true
   }).map((e: any) => ({
     id: e.id,
