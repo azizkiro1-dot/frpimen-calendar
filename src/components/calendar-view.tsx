@@ -158,10 +158,14 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
 
             if (isMonth) {
               return (
-                <div className="flex items-center gap-1.5 px-1.5 py-0.5 text-[11px] w-full overflow-hidden rounded-md hover:bg-neutral-50">
-                  <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: color }} />
-                  {timeText && <span className="text-neutral-500 text-[10px] tabular-nums shrink-0">{timeText}</span>}
-                  <span className="truncate font-medium text-neutral-800">{title}</span>
+                <div
+                  className="px-2 py-1 text-[11px] w-full overflow-hidden rounded-md hover:scale-[1.02] transition-transform"
+                  style={{ background: hexToRgba(color, 0.18), borderLeft: `2.5px solid ${color}` }}
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {timeText && <span className="text-neutral-700 text-[10px] tabular-nums shrink-0 font-medium">{timeText}</span>}
+                    <span className="truncate font-semibold text-neutral-900">{title}</span>
+                  </div>
                 </div>
               )
             }
