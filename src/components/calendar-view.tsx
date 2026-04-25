@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { DateTime } from 'luxon'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
+const TZ = 'America/Chicago'
+
 export type CalendarEvent = {
   id: string
   title: string
@@ -35,58 +37,69 @@ type Props = {
   onCreateClick?: () => void
 }
 
+const dayGradients = [
+  'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+  'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+  'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+  'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
+  'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+  'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)',
+  'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)',
+]
+
 export function CalendarView({ events, onEventClick, onDateClick, onCreateClick }: Props) {
   const calendarRef = useRef<FullCalendar | null>(null)
-  const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
+  const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('timeGridWeek')
   const [title, setTitle] = useState('')
 
   const goPrev = () => calendarRef.current?.getApi().prev()
   const goNext = () => calendarRef.current?.getApi().next()
   const goToday = () => calendarRef.current?.getApi().today()
-
   const changeView = (view: typeof currentView) => {
     calendarRef.current?.getApi().changeView(view)
     setCurrentView(view)
   }
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm">
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-wrap gap-2 sm:gap-3">
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={goToday}>Today</Button>
-          <Button variant="ghost" size="icon" onClick={goPrev} className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={goNext} className="h-8 w-8">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <h2 className="text-base sm:text-lg font-semibold ml-1 sm:ml-2 truncate">{title}</h2>
+    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-100 flex-wrap gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={goToday} className="rounded-full">Today</Button>
+          <div className="flex items-center">
+            <button onClick={goPrev} className="h-8 w-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button onClick={goNext} className="h-8 w-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <h2 className="text-lg sm:text-xl font-semibold ml-2 truncate">{title}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border bg-slate-50 p-0.5">
+          <div className="flex rounded-full bg-neutral-100 p-1">
             {(['dayGridMonth','timeGridWeek','timeGridDay','listWeek'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => changeView(v)}
-                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition ${
-                  currentView === v ? 'bg-white shadow-sm font-medium text-slate-900' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1 text-xs sm:text-sm rounded-full transition ${
+                  currentView === v ? 'bg-white shadow-sm font-medium text-neutral-900' : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
                 {v === 'dayGridMonth' ? 'Month' : v === 'timeGridWeek' ? 'Week' : v === 'timeGridDay' ? 'Day' : 'List'}
               </button>
             ))}
           </div>
-          <Button size="sm" onClick={onCreateClick} className="shrink-0">
+          <Button size="sm" onClick={onCreateClick} className="rounded-full shrink-0">
             <Plus className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">New event</span>
           </Button>
         </div>
       </div>
-      <div className="p-2 sm:p-4">
+      <div className="p-3 sm:p-5">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
-          initialView="dayGridMonth"
+          initialView="timeGridWeek"
           headerToolbar={false}
           events={events}
           height="auto"
@@ -94,45 +107,76 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
           dayMaxEvents={3}
           editable
           selectable
-          timeZone="America/Chicago"
+          timeZone={TZ}
           eventDisplay="block"
           slotMinTime="06:00:00"
           slotMaxTime="23:00:00"
+          slotDuration="00:30:00"
+          slotLabelInterval="01:00"
+          allDaySlot={true}
+          allDayText="all day"
           expandRows
+          firstDay={0}
           datesSet={(arg) => setTitle(arg.view.title)}
           eventClick={(info) => onEventClick?.(info.event.id)}
           dateClick={(info) => onDateClick?.(info.date)}
-          eventContent={(arg) => {
-            const isMonth = arg.view.type === 'dayGridMonth'
-            const color = arg.event.backgroundColor || '#3b82f6'
-            const start = arg.event.start
-            const end = arg.event.end
-            const timeText = start
-              ? (arg.event.allDay
-                ? ''
-                : DateTime.fromJSDate(start).setZone('America/Chicago').toFormat('h:mma').toLowerCase())
-              : ''
-            const title = arg.event.title
-            if (isMonth) {
+          dayHeaderContent={(arg) => {
+            const dt = DateTime.fromJSDate(arg.date).setZone(TZ)
+            const isToday = arg.isToday
+            const dayName = dt.toFormat('ccc').toLowerCase()
+            const dayNum = dt.toFormat('d')
+            const grad = dayGradients[dt.weekday % 7]
+            if (currentView === 'dayGridMonth') {
               return (
-                <div
-                  className="flex items-center gap-1.5 px-1.5 py-0.5 text-[11px] w-full overflow-hidden"
-                  style={{ color: '#0f172a' }}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: color }} />
-                  {timeText && <span className="font-normal text-slate-500 text-[10px] shrink-0">{timeText}</span>}
-                  <span className="truncate font-medium">{title}</span>
+                <div className="text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-medium py-2">
+                  {dayName}
                 </div>
               )
             }
             return (
+              <div className={`flex flex-col items-center justify-center py-2 px-2 rounded-2xl mx-1 my-1 ${isToday ? 'shadow-md ring-1 ring-neutral-200' : ''}`}
+                style={{ background: isToday ? '#fff' : grad }}>
+                <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-700 font-medium">{dayName}</span>
+                <span className={`text-2xl font-semibold leading-none mt-0.5 ${isToday ? 'text-neutral-900' : 'text-neutral-800'}`}>{dayNum}</span>
+              </div>
+            )
+          }}
+          eventContent={(arg) => {
+            const isMonth = arg.view.type === 'dayGridMonth'
+            const isList = arg.view.type === 'listWeek'
+            const color = arg.event.backgroundColor || '#6366f1'
+            const start = arg.event.start
+            const end = arg.event.end
+            const timeText = start && !arg.event.allDay
+              ? DateTime.fromJSDate(start).setZone(TZ).toFormat('h:mma').toLowerCase()
+              : ''
+            const title = arg.event.title
+
+            if (isList) {
+              return null
+            }
+
+            if (isMonth) {
+              return (
+                <div className="flex items-center gap-1.5 px-1.5 py-0.5 text-[11px] w-full overflow-hidden rounded-md hover:bg-neutral-50">
+                  <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: color }} />
+                  {timeText && <span className="text-neutral-500 text-[10px] tabular-nums shrink-0">{timeText}</span>}
+                  <span className="truncate font-medium text-neutral-800">{title}</span>
+                </div>
+              )
+            }
+
+            return (
               <div
-                className="h-full w-full rounded-md overflow-hidden flex flex-col"
-                style={{ background: hexToRgba(color, 0.12), borderLeft: `3px solid ${color}` }}
+                className="h-full w-full rounded-lg overflow-hidden flex flex-col cursor-pointer"
+                style={{
+                  background: hexToRgba(color, 0.15),
+                  borderLeft: `3px solid ${color}`,
+                }}
               >
-                <div className="px-2 py-1 text-xs">
-                  <div className="font-semibold text-slate-900 truncate">{title}</div>
-                  {timeText && <div className="text-[11px] text-slate-600">{timeText}</div>}
+                <div className="px-2 py-1 text-xs flex-1 min-h-0">
+                  <div className="font-semibold text-neutral-900 truncate leading-tight">{title}</div>
+                  {timeText && <div className="text-[10.5px] text-neutral-700 mt-0.5 tabular-nums">{timeText}</div>}
                 </div>
               </div>
             )
