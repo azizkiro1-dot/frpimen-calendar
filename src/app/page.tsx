@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { CalendarPage } from '@/components/calendar-page'
 import type { CalendarEvent } from '@/components/calendar-view'
 import { AppSidebar } from '@/components/app-sidebar'
+import { LiturgicalBanner } from '@/components/liturgical-banner'
 
 const TZ = 'America/Chicago'
 
@@ -65,6 +66,7 @@ export default async function HomePage() {
 
       <div className="lg:pl-64 transition-[padding] duration-200">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+          <LiturgicalBanner />
           {/* Hero card — design-7 inspired, colorful */}
           <div className="rounded-3xl p-6 sm:p-8 relative overflow-hidden border border-neutral-200/80 shadow-sm bg-white">
             <div className="absolute inset-0 -z-0 opacity-90"

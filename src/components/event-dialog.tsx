@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createEvent, updateEvent, deleteEvent } from '@/app/actions/events'
 import { checkConflicts, suggestAlternatives, type ConflictEvent } from '@/app/actions/conflicts'
-import { Trash2, AlertTriangle, Sparkles, Loader2 } from 'lucide-react'
+import { Trash2, AlertTriangle, Sparkles, Loader2, Globe } from 'lucide-react'
+import { detectTimezone } from '@/lib/travel-tz'
 
 const TZ = 'America/Chicago'
 
@@ -297,6 +298,19 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
             </div>
           </div>
           {rangeText && <p className="text-[12px] text-neutral-500">{rangeText}</p>}
+            {(() => {
+              const detected = detectTimezone(location)
+              if (!detected || detected === TZ || !startDate || !startTime) return null
+              const local = DateTime.fromFormat(`${startDate} ${startTime}`, 'yyyy-LL-dd HH:mm', { zone: TZ })
+              const there = local.setZone(detected)
+              return (
+                <div className="text-[11.5px] text-blue-700 bg-blue-50 border border-blue-100 rounded-md px-2.5 py-1.5 flex items-center gap-1.5">
+                  <Globe className="h-3 w-3" />
+                  Local time at <span className="font-semibold">{detected.split('/')[1].replace('_', ' ')}</span>: {there.toFormat('h:mm a')} ({there.offsetNameShort})
+                </div>
+              )
+            })()}
+
           {checkingConflicts && <p className="text-[12px] text-neutral-500 flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> Checking...</p>}
         </div>
 
