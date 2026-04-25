@@ -93,11 +93,21 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       setVisibility(event.visibility ?? 'default')
     } else {
       const base = defaultDate ?? new Date()
-      const dtStart = DateTime.fromJSDate(base).setZone(TZ)
-      // If time is midnight (day-click), default to 9am
-      const adjusted = dtStart.hour === 0 && dtStart.minute === 0
-        ? dtStart.set({ hour: 9, minute: 0 })
-        : dtStart.set({ second: 0, millisecond: 0 })
+      // Use UTC components to extract the intended local date
+      // (FullCalendar passes midnight UTC for date clicks)
+      const isUtcMidnight = base.getUTCHours() === 0 && base.getUTCMinutes() === 0 && base.getUTCSeconds() === 0
+      let adjusted: DateTime
+      if (isUtcMidnight) {
+        adjusted = DateTime.fromObject(
+          { year: base.getUTCFullYear(), month: base.getUTCMonth() + 1, day: base.getUTCDate(), hour: 9, minute: 0 },
+          { zone: TZ }
+        )
+      } else {
+        const local = DateTime.fromJSDate(base).setZone(TZ)
+        // Round to nearest 15 min
+        const roundedMin = Math.round(local.minute / 15) * 15
+        adjusted = local.set({ minute: roundedMin % 60, second: 0, millisecond: 0 }).plus({ hours: roundedMin >= 60 ? 1 : 0 })
+      }
       const dtEnd = adjusted.plus({ hours: 1 })
       setTitle('')
       setDescription('')
