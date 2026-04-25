@@ -83,7 +83,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
   const isEdit = !!event?.id
   const [pending, startTransition] = useTransition()
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useSta)
+  const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
   const [startDate, setStartDate] = useState('')
   const [startTime, setStartTime] = useState('')
