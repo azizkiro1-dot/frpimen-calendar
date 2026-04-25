@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { CalendarView, type CalendarEvent } from '@/components/calendar-view'
-import { EventDialog, type MeetingType, type EventData } from '@/components/event-dialog'
+import dynamic from 'next/dynamic'
+import type { MeetingType, EventData } from '@/components/event-dialog'
+const EventDialog = dynamic(() => import('@/components/event-dialog').then(m => m.EventDialog), { ssr: false })
 
 type Props = {
   events: CalendarEvent[]
