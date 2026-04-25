@@ -17,8 +17,10 @@ const TZ = 'America/Chicago'
 export type CalendarEvent = {
   id: string
   title: string
-  start: string
-  end: string
+  start?: string
+  end?: string
+  rrule?: any
+  duration?: any
   allDay?: boolean
   backgroundColor?: string
   borderColor?: string
@@ -63,7 +65,9 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
   const todayCount = useMemo(() => {
     const todayStr = DateTime.now().setZone(TZ).toFormat('yyyy-LL-dd')
     return events.filter(e => {
-      const d = DateTime.fromISO(e.start, { setZone: true }).setZone(TZ).toFormat('yyyy-LL-dd')
+      const startStr = e.start ?? e.rrule?.dtstart
+      if (!startStr) return false
+      const d = DateTime.fromISO(startStr, { setZone: true }).setZone(TZ).toFormat('yyyy-LL-dd')
       return d === todayStr
     }).length
   }, [events])

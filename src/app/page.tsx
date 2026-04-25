@@ -32,12 +32,11 @@ export default async function HomePage() {
   }).map((e: any) => ({
     id: e.id,
     title: e.visibility === 'confidential' && e.owner_id !== user.id ? 'Busy' : e.title,
-    start: ensureUtc(e.starts_at),
-    end: ensureUtc(e.ends_at),
     allDay: e.all_day,
+    // When recurring, ONLY pass rrule (omit start/end) so FullCalendar doesn't render both master + instance
     ...(e.rrule
       ? { rrule: { freq: parseFreq(e.rrule), dtstart: ensureUtc(e.starts_at), ...parseRruleOptions(e.rrule) }, duration: msDiff(e.starts_at, e.ends_at) }
-      : {}),
+      : { start: ensureUtc(e.starts_at), end: ensureUtc(e.ends_at) }),
     backgroundColor: e.meeting_types?.color ?? colorFromId(e.id),
     borderColor: e.meeting_types?.color ?? colorFromId(e.id),
     extendedProps: {
@@ -52,7 +51,9 @@ export default async function HomePage() {
   // Today's count for hero
   const todayStr = DateTime.now().setZone(TZ).toFormat('yyyy-LL-dd')
   const todayCount = calendarEvents.filter(e => {
-    const d = DateTime.fromISO(e.start, { setZone: true }).setZone(TZ).toFormat('yyyy-LL-dd')
+    const startStr = e.start ?? e.rrule?.dtstart
+    if (!startStr) return false
+    const d = DateTime.fromISO(startStr, { setZone: true }).setZone(TZ).toFormat('yyyy-LL-dd')
     return d === todayStr
   }).length
 
