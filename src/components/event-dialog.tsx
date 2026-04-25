@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createEvent, updateEvent, deleteEvent } from '@/app/actions/events'
 import { checkConflicts, suggestAlternatives, type ConflictEvent } from '@/app/actions/conflicts'
-import { Trash2, AlertTriangle, Sparkles, Clock, MapPin, FileText, Tag, Eye, Loader2 } from 'lucide-react'
+import { Trash2, AlertTriangle, Sparkles, Clock, MapPin, FileText, Tag, Eye, Loader2, Repeat } from 'lucide-react'
 
 const TZ = process.env.NEXT_PUBLIC_APP_TIMEZONE || 'America/Chicago'
 
@@ -33,6 +33,7 @@ export type EventData = {
   meeting_type_id?: string | null
   busy_level?: string
   visibility?: string
+  rrule?: string | null
 }
 
 type Props = {
@@ -73,6 +74,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
   const [meetingTypeId, setMeetingTypeId] = useState('')
   const [busyLevel, setBusyLevel] = useState('busy')
   const [visibility, setVisibility] = useState('default')
+  const [recurrence, setRecurrence] = useState('none')
   const [error, setError] = useState('')
   const [conflicts, setConflicts] = useState<ConflictEvent[]>([])
   const [alternatives, setAlternatives] = useState<string[]>([])
@@ -91,6 +93,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       setMeetingTypeId(event.meeting_type_id ?? meetingTypes[0]?.id ?? '')
       setBusyLevel(event.busy_level ?? 'busy')
       setVisibility(event.visibility ?? 'default')
+      setRecurrence(rruleToPreset(event.rrule))
     } else {
       const base = defaultDate ?? new Date()
       // Use UTC components to extract the intended local date
@@ -117,6 +120,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       setMeetingTypeId(meetingTypes[0]?.id ?? '')
       setBusyLevel('busy')
       setVisibility('default')
+      setRecurrence('none')
     }
     setError('')
     setConflicts([])
@@ -187,6 +191,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
     fd.set('meeting_type_id', meetingTypeId)
     fd.set('busy_level', busyLevel)
     fd.set('visibility', visibility)
+    fd.set('rrule', presetToRrule(recurrence, starts) ?? '')
 
     startTransition(async () => {
       const res = isEdit
@@ -354,6 +359,25 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
             </Select>
           </div>
 
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
+              <Repeat className="h-3.5 w-3.5" /> Repeat
+            </Label>
+            <Select value={recurrence} onValueChange={setRecurrence}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Does not repeat</SelectItem>
+                <SelectItem value="daily">Every day</SelectItem>
+                <SelectItem value="weekdays">Every weekday (Mon-Fri)</SelectItem>
+                <SelectItem value="weekly">Weekly on same day</SelectItem>
+                <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+                <SelectItem value="monthly_date">Monthly on same date</SelectItem>
+                <SelectItem value="monthly_weekday">Monthly on first same weekday</SelectItem>
+                <SelectItem value="yearly">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
         </div>
 
@@ -371,4 +395,36 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       </DialogContent>
     </Dialog>
   )
+}
+
+
+function presetToRrule(preset: string, startLocal: string): string | null {
+  if (preset === 'none') return null
+  const d = DateTime.fromFormat(startLocal, "yyyy-LL-dd'T'HH:mm", { zone: 'America/Chicago' })
+  const wd = d.isValid ? ['SU','MO','TU','WE','TH','FR','SA'][d.weekday % 7] : 'MO'
+  const dayOfMonth = d.isValid ? d.day : 1
+  const weekNum = d.isValid ? Math.ceil(d.day / 7) : 1
+  switch (preset) {
+    case 'daily': return 'FREQ=DAILY'
+    case 'weekdays': return 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR'
+    case 'weekly': return `FREQ=WEEKLY;BYDAY=${wd}`
+    case 'biweekly': return `FREQ=WEEKLY;INTERVAL=2;BYDAY=${wd}`
+    case 'monthly_date': return `FREQ=MONTHLY;BYMONTHDAY=${dayOfMonth}`
+    case 'monthly_weekday': return `FREQ=MONTHLY;BYDAY=${weekNum}${wd}`
+    case 'yearly': return 'FREQ=YEARLY'
+    default: return null
+  }
+}
+
+function rruleToPreset(rrule?: string | null): string {
+  if (!rrule) return 'none'
+  const r = rrule.toUpperCase()
+  if (r === 'FREQ=DAILY') return 'daily'
+  if (r.includes('FREQ=WEEKLY') && r.includes('MO,TU,WE,TH,FR')) return 'weekdays'
+  if (r.includes('FREQ=WEEKLY') && r.includes('INTERVAL=2')) return 'biweekly'
+  if (r.includes('FREQ=WEEKLY')) return 'weekly'
+  if (r.includes('FREQ=MONTHLY') && r.includes('BYMONTHDAY')) return 'monthly_date'
+  if (r.includes('FREQ=MONTHLY')) return 'monthly_weekday'
+  if (r === 'FREQ=YEARLY') return 'yearly'
+  return 'none'
 }

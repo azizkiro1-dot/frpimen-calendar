@@ -15,6 +15,7 @@ const eventSchema = z.object({
   meeting_type_id: z.string().uuid().optional().nullable(),
   busy_level: z.enum(['free','tentative','busy','blocked']).default('busy'),
   visibility: z.enum(['default','private','confidential','public']).default('default'),
+  rrule: z.string().optional().nullable(),
   attendee_emails: z.string().optional(),
   recurrence: z.enum(['none','daily','weekly','monthly']).default('none'),
   recurrence_count: z.number().int().min(1).max(365).optional(),
@@ -31,6 +32,7 @@ function parseFormData(formData: FormData) {
     meeting_type_id: formData.get('meeting_type_id')?.toString() || null,
     busy_level: (formData.get('busy_level')?.toString() as any) ?? 'busy',
     visibility: (formData.get('visibility')?.toString() as any) ?? 'default',
+    rrule: formData.get('rrule')?.toString() || null,
     attendee_emails: formData.get('attendee_emails')?.toString() || undefined,
     recurrence: (formData.get('recurrence')?.toString() as any) ?? 'none',
     recurrence_count: formData.get('recurrence_count')
@@ -68,6 +70,7 @@ export async function createEvent(formData: FormData) {
       meeting_type_id: data.meeting_type_id,
       busy_level: data.busy_level,
       visibility: data.visibility,
+      rrule: data.rrule,
       recurrence_rule,
     })
     .select()
@@ -109,6 +112,7 @@ export async function updateEvent(id: string, formData: FormData) {
       meeting_type_id: raw.meeting_type_id,
       busy_level: raw.busy_level,
       visibility: raw.visibility,
+      rrule: raw.rrule,
     })
     .eq('id', id)
     .eq('owner_id', user.id)

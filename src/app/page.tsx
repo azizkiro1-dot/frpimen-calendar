@@ -32,6 +32,7 @@ export default async function HomePage() {
     start: e.starts_at,
     end: e.ends_at,
     allDay: e.all_day,
+    ...(e.rrule ? { rrule: { freq: parseFreq(e.rrule), dtstart: e.starts_at, ...parseRruleOptions(e.rrule) }, duration: msDiff(e.starts_at, e.ends_at) } : {}),
     backgroundColor: e.meeting_types?.color ?? '#3b82f6',
     borderColor: e.meeting_types?.color ?? '#3b82f6',
     extendedProps: {
@@ -56,4 +57,31 @@ export default async function HomePage() {
       </main>
     </div>
   )
+}
+
+function parseFreq(rrule: string): string {
+  const m = rrule.toUpperCase().match(/FREQ=(\w+)/)
+  return m ? m[1].toLowerCase() : 'weekly'
+}
+
+function parseRruleOptions(rrule: string): any {
+  const opts: any = {}
+  const upper = rrule.toUpperCase()
+  const interval = upper.match(/INTERVAL=(\d+)/)
+  if (interval) opts.interval = parseInt(interval[1])
+  const byday = upper.match(/BYDAY=([A-Z0-9,]+)/)
+  if (byday) opts.byweekday = byday[1].split(',').map(parseWeekday).filter(Boolean)
+  const bymonthday = upper.match(/BYMONTHDAY=(\d+)/)
+  if (bymonthday) opts.bymonthday = [parseInt(bymonthday[1])]
+  return opts
+}
+
+function parseWeekday(s: string): string | null {
+  const m = s.match(/^(-?\d+)?([A-Z]{2})$/)
+  if (!m) return null
+  return m[2].toLowerCase()
+}
+
+function msDiff(a: string, b: string): { milliseconds: number } {
+  return { milliseconds: new Date(b).getTime() - new Date(a).getTime() }
 }
