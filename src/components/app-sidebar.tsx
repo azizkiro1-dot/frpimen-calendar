@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import {
   Calendar, CheckSquare, MessageSquare, Users, LayoutDashboard,
-  Upload, LogOut, Menu, ChevronLeft, ChevronRight,
+  Upload, LogOut, Menu, ChevronLeft, ChevronRight, HelpCircle, Settings as Cog,
 } from 'lucide-react'
 
 type NavItem = { href: string; label: string; icon: any; tone: string }

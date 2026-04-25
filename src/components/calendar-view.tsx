@@ -38,6 +38,7 @@ type Props = {
   onEventClick?: (id: string) => void
   onDateClick?: (date: Date) => void
   onCreateClick?: () => void
+  onEventDrop?: (id: string, startsAt: string, endsAt: string) => void
 }
 
 const VIEWS = [
@@ -49,7 +50,7 @@ const VIEWS = [
 
 type ViewId = typeof VIEWS[number]['id']
 
-export function CalendarView({ events, onEventClick, onDateClick, onCreateClick }: Props) {
+export function CalendarView({ events, onEventClick, onDateClick, onCreateClick, onEventDrop }: Props) {
   const calendarRef = useRef<FullCalendar | null>(null)
   const [currentView, setCurrentView] = useState<ViewId>('dayGridMonth')
   const [title, setTitle] = useState('')
@@ -147,6 +148,14 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
           }
           datesSet={(arg) => setTitle(arg.view.title)}
           eventClick={(info) => onEventClick?.(info.event.id)}
+          eventDrop={(info) => {
+            if (!info.event.start || !info.event.end) { info.revert(); return }
+            onEventDrop?.(info.event.id, info.event.start.toISOString(), info.event.end.toISOString())
+          }}
+          eventResize={(info) => {
+            if (!info.event.start || !info.event.end) { info.revert(); return }
+            onEventDrop?.(info.event.id, info.event.start.toISOString(), info.event.end.toISOString())
+          }}
           dateClick={(info) => onDateClick?.(info.date)}
           eventContent={(arg) => {
             const view = arg.view.type

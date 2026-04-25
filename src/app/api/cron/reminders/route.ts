@@ -4,7 +4,10 @@ import webpush from 'web-push'
 
 // Runs every 5 min via Vercel cron. Sends push for events starting in next 15 min.
 export async function GET(req: Request) {
-  if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  const reqUrl = new URL(req.url)
+  const queryKey = reqUrl.searchParams.get('key')
+  const headerKey = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/, '')
+  if (queryKey !== process.env.CRON_SECRET && headerKey !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 

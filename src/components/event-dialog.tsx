@@ -107,6 +107,8 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
   const [busyLevel, setBusyLevel] = useState('busy')
   const [visibility, setVisibility] = useState('default')
   const [recurrence, setRecurrence] = useState('none')
+  const [attendeeEmails, setAttendeeEmails] = useState<string[]>([])
+  const [attendeeInput, setAttendeeInput] = useState('')
   const [error, setError] = useState('')
   const [conflicts, setConflicts] = useState<ConflictEvent[]>([])
   const [alternatives, setAlternatives] = useState<string[]>([])
@@ -126,6 +128,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       setStartDate(sp.date); setStartTime(sp.time)
       setEndDate(ep.date); setEndTime(ep.time)
       setMeetingTypeId(event.meeting_type_id ?? meetingTypes[0]?.id ?? '')
+      setAttendeeEmails([])
       setBusyLevel(event.busy_level ?? 'busy')
       setVisibility(event.visibility ?? 'default')
       setRecurrence(rruleToPreset(event.rrule))
@@ -153,6 +156,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       setEndDate(endDt.toFormat('yyyy-LL-dd'))
       setEndTime(endDt.toFormat('HH:mm'))
       setMeetingTypeId(defaultType?.id ?? '')
+      setAttendeeEmails([])
       setBusyLevel('busy'); setVisibility('default'); setRecurrence('none')
       endTouchedRef.current = false
     }
@@ -221,6 +225,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
     fd.set('starts_at', sIso); fd.set('ends_at', eIso); fd.set('all_day', 'false')
     fd.set('meeting_type_id', meetingTypeId); fd.set('busy_level', busyLevel)
     fd.set('visibility', visibility); fd.set('rrule', presetToRrule(recurrence, startDate, startTime) ?? '')
+    fd.set('attendee_emails', attendeeEmails.join(','))
     startTransition(async () => {
       const res = isEdit ? await updateEvent(event!.id!, fd) : await createEvent(fd)
       if ((res as any)?.error) setError((res as any).error)
@@ -369,6 +374,34 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
               <SelectItem value="yearly">Yearly</SelectItem>
             </SelectContent>
           </Select>
+        </Row>
+
+        <Row label="People">
+          <div className="flex-1 ml-3 flex flex-wrap items-center gap-1.5 max-w-[220px]">
+            {attendeeEmails.map((em, i) => (
+              <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[11.5px] text-blue-800">
+                {em}
+                <button type="button" onClick={() => setAttendeeEmails(attendeeEmails.filter((_, j) => j !== i))} className="text-blue-500 hover:text-blue-700">×</button>
+              </span>
+            ))}
+            <input
+              type="email"
+              value={attendeeInput}
+              onChange={e => setAttendeeInput(e.target.value)}
+              onKeyDown={e => {
+                if ((e.key === 'Enter' || e.key === ',') && attendeeInput.includes('@')) {
+                  e.preventDefault()
+                  if (!attendeeEmails.includes(attendeeInput.trim())) setAttendeeEmails([...attendeeEmails, attendeeInput.trim()])
+                  setAttendeeInput('')
+                }
+                if (e.key === 'Backspace' && !attendeeInput && attendeeEmails.length) {
+                  setAttendeeEmails(attendeeEmails.slice(0, -1))
+                }
+              }}
+              placeholder={attendeeEmails.length ? '' : 'email@example.com'}
+              className="flex-1 min-w-[100px] text-[13px] bg-transparent border-0 outline-none placeholder:text-neutral-400"
+            />
+          </div>
         </Row>
 
         <Row label="Visibility">

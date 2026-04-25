@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { SWRegister } from '@/components/sw-register'
+import { OnboardingTour } from '@/components/onboarding-tour'
+import { QuickAddBar } from '@/components/quick-add-bar'
+import { SearchPalette } from '@/components/search-palette'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
@@ -31,7 +34,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-neutral-50"><SWRegister />{children}</body>
+      <body className="min-h-full flex flex-col bg-neutral-50"><SWRegister />{children}<OnboardingTour /><QuickAddBar /><SearchPalette /></body>
     </html>
   )
 }
