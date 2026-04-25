@@ -21,14 +21,15 @@ export async function POST(req: Request) {
     start.setDate(start.getDate() - 1)
     const end = new Date(now)
     end.setDate(end.getDate() + 30)
+    const nowLocalStr = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(now)
 
     const { data: events } = await supabase
       .from('events')
-      .select('title, start_time, end_time, location, meeting_type_id, busy_level')
+      .select('title, starts_at, ends_at, location, meeting_type_id, busy_level')
       .eq('owner_id', user.id)
-      .gte('start_time', start.toISOString())
-      .lte('start_time', end.toISOString())
-      .order('start_time', { ascending: true })
+      .gte('starts_at', start.toISOString())
+      .lte('starts_at', end.toISOString())
+      .order('starts_at', { ascending: true })
       .limit(50)
 
     const { data: tasks } = await supabase
@@ -41,10 +42,10 @@ export async function POST(req: Request) {
 
     const tz = process.env.NEXT_PUBLIC_APP_TIMEZONE || 'America/Chicago'
     const system = `You are a helpful calendar assistant for Fr. Pimen, a Catholic priest in Prosper, TX.
-Current date/time: ${now.toISOString()} (timezone: ${tz}).
+Current date/time in Central Time: ${nowLocalStr}. All event times below are in UTC — convert to Central Time for display.
 
 Upcoming events (next 30 days):
-${(events ?? []).map(e => `- ${e.title} | ${e.start_time} to ${e.end_time} | ${e.location ?? 'no location'} | busy: ${e.busy_level}`).join('\n') || '(none)'}
+${(events ?? []).map(e => { const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); return `- ${e.title} | ${fmt.format(new Date(e.starts_at))} to ${new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }).format(new Date(e.ends_at))} | ${e.location ?? 'no location'} | ${e.busy_level}`; }).join('\n') || '(none)'}
 
 Open tasks:
 ${(tasks ?? []).map(t => `- ${t.title} | priority: ${t.priority} | due: ${t.due_date ?? 'no date'}`).join('\n') || '(none)'}
