@@ -336,3 +336,13 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   button, a { min-height: 36px; }
   .fc-button { min-height: 36px; }
 }
+
+
+/* Perf: defer offscreen rendering of calendar weeks not in view */
+.fc-daygrid-body { content-visibility: auto; contain-intrinsic-size: auto 600px; }
+.fc-timegrid-body { content-visibility: auto; contain-intrinsic-size: auto 1200px; }
+
+/* Reduce motion for users who request it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
