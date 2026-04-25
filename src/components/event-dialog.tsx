@@ -232,7 +232,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-0 gap-0 max-h-[92vh] overflow-y-auto [&>button]:hidden rounded-2xl">
+      <DialogContent className="max-w-lg p-0 gap-0 max-h-[92vh] overflow-y-auto [&>button]:hidden rounded-2xl bg-white">
         <div
           className="px-5 pt-5 pb-4 relative overflow-hidden bg-white border-b border-neutral-100"
           
@@ -254,7 +254,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
           />
         </div>
 
-        <div className="px-5 py-5 space-y-5">
+        <div className="px-5 py-5 space-y-5 bg-white">
           <div className="rounded-xl border border-neutral-200 p-4 space-y-3 bg-white">
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-neutral-500 font-semibold">
               <CalendarDays className="h-3.5 w-3.5" /> Date and time
