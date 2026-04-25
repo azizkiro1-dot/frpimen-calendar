@@ -313,7 +313,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
                 <label className="flex items-center gap-2 text-xs text-amber-900 cursor-pointer">
                   <input type="checkbox" checked={overrideConflict} onChange={e => setOverrideConflict(e.target.checked)} /> Book anyway
                 </label>
-             /div>
+              </div>
               {alternatives.length > 0 && (
                 <div className="pt-2 border-t border-amber-200 space-y-1.5">
                   <p className="text-[11px] text-amber-800 uppercase tracking-wide">Pick one</p>
@@ -386,7 +386,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
           </div>
 
           <div className="space-y-2">
-            iv className="text-[11px] uppercase tracking-wider text-neutral-500 font-medium">Visibility</div>
+            <div className="text-[11px] uppercase tracking-wider text-neutral-500 font-medium">Visibility</div>
             <Select value={visibility} onValueChange={setVisibility}>
               <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
               <SelectContent>
