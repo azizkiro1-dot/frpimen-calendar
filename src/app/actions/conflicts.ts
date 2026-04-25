@@ -1,5 +1,7 @@
 'use server'
 
+import { DateTime } from 'luxon'
+
 import { createClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 
@@ -61,20 +63,49 @@ export async function suggestAlternatives(
   const durationMs = new Date(desiredEnd).getTime() - new Date(desiredStart).getTime()
   const durationMin = Math.round(durationMs / 60000)
 
-  const prompt = `You are a scheduling assistant. Propose 3 alternative time slots for "${title}" (${durationMin} min).
+  const desiredDt = DateTime.fromISO(desiredStart, { zone: 'utc' }).setZone('America/Chicago')
+  const desiredReadable = desiredDt.toFormat('EEE LLL d, h:mm a')
+  const todayLocal = DateTime.now().setZone('America/Chicago').toFormat('EEE LLL d, yyyy h:mm a')
 
-Desired time: ${desiredStart} to ${desiredEnd}
-Conflicts: ${conflicts.map(c => `${c.title} (${c.starts_at} - ${c.ends_at})`).join('; ')}
+  const busyList = (nearby ?? [])
+    .map(e => {
+      const s = DateTime.fromISO(e.starts_at, { zone: 'utc' }).setZone('America/Chicago')
+      const en = DateTime.fromISO(e.ends_at, { zone: 'utc' }).setZone('America/Chicago')
+      return `- ${s.toFormat('EEE LLL d h:mm a')} to ${en.toFormat('h:mm a')}: ${e.title} [${e.busy_level}]`
+    })
+    .join('\n') || '(no other events)'
 
-Busy schedule in next 7 days:
-${(nearby ?? []).map(e => `- ${e.title}: ${e.starts_at} to ${e.ends_at} [${e.busy_level}]`).join('\n') || '(mostly free)'}
+  const conflictList = conflicts
+    .map(c => {
+      const s = DateTime.fromISO(c.starts_at, { zone: 'utc' }).setZone('America/Chicago')
+      const en = DateTime.fromISO(c.ends_at, { zone: 'utc' }).setZone('America/Chicago')
+      return `- "${c.title}" ${s.toFormat('EEE LLL d h:mm a')} to ${en.toFormat('h:mm a')}`
+    })
+    .join('\n')
 
-Rules:
-- Stay within 9am-8pm Central Time
-- Avoid overlaps
-- Prefer same day or next day
-- Return ONLY a JSON array of 3 ISO start times, e.g. ["2026-04-24T10:00:00-05:00", ...]
-- No prose, no markdown, just the JSON array.`
+  const prompt = `You are Fr. Pimen's smart scheduler. Propose 3 alternative start times for this meeting.
+
+Meeting: "${title}" (${durationMin} min)
+Desired: ${desiredReadable}
+Current time: ${todayLocal}
+
+Cannot use (overlaps with):
+${conflictList}
+
+Other events (next 7 days):
+${busyList}
+
+Strict rules:
+1. ALL times must be in America/Chicago (Central) timezone
+2. Only propose times between 9:00 AM and 7:00 PM Monday-Friday, or 10:00 AM - 5:00 PM Saturday (skip Sundays unless urgent)
+3. Times MUST be in the future (after current time)
+4. Leave 15 min buffer before and after other events
+5. Round to quarter hour (00, 15, 30, 45)
+6. Prefer: same day first, then within 3 days, then next week
+7. Space the 3 options apart (don't all on same day)
+
+Return ONLY a JSON array of 3 ISO-8601 start times with -05:00 or -06:00 offset, nothing else.
+Example format: ["2026-04-24T14:00:00-05:00","2026-04-25T10:30:00-05:00","2026-04-28T15:15:00-05:00"]`
 
   try {
     const response = await anthropic.messages.create({
