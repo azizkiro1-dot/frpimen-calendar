@@ -246,3 +246,16 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   outline: 2px solid rgba(10, 10, 10, 0.15);
   outline-offset: 2px;
 }
+
+/* Mobile FullCalendar polish */
+@media (max-width: 768px) {
+  .fc .fc-toolbar-title { font-size: 1.1rem; }
+  .fc-daygrid-day-number { font-size: 0.85rem; padding: 4px 6px; }
+  .fc-event { font-size: 11px !important; }
+  .fc-timegrid-slot { height: 2.4em !important; }
+  .fc .fc-col-header-cell-cushion { padding: 4px 2px; }
+  .fc-daygrid-day-events { margin-top: 2px !important; }
+  .fc-popover { max-width: 90vw !important; }
+}
+.fc-event { transition: transform 0.12s ease; }
+.fc-event:hover { transform: translateY(-1px); }
