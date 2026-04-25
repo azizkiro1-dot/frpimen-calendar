@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Bell, Trash2, AlertTriangle, Mail, User } from 'lucide-react'
+import { Download, Bell, Trash2, AlertTriangle, Mail, User, Palette } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { PushToggle } from '@/components/push-toggle'
 
 export function SettingsPanel({ email, name }: { email: string; name: string }) {
@@ -52,6 +53,15 @@ export function SettingsPanel({ email, name }: { email: string; name: string }) 
         <div className="px-5 py-4 space-y-2 text-[14px]">
           <Row label="Name"  value={name || '—'} />
           <Row label="Email" value={email} mono />
+        </div>
+      </Card>
+
+      {/* Appearance */}
+      <Card>
+        <SectionHead icon={Palette} title="Appearance" />
+        <div className="px-5 py-4 flex items-center justify-between">
+          <span className="text-[14px] text-neutral-700">Theme</span>
+          <ThemeToggle />
         </div>
       </Card>
 

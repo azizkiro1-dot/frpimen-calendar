@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createEvent, updateEvent, deleteEvent } from '@/app/actions/events'
+import { restoreEvent } from '@/app/actions/undo'
+import { toast } from 'sonner'
 import { checkConflicts, suggestAlternatives, type ConflictEvent } from '@/app/actions/conflicts'
 import { Trash2, AlertTriangle, Sparkles, Loader2, Globe } from 'lucide-react'
 import { detectTimezone } from '@/lib/travel-tz'
@@ -236,8 +238,22 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
 
   async function handleDelete() {
     if (!event?.id) return
-    if (!confirm('Delete this event?')) return
-    startTransition(async () => { await deleteEvent(event.id!); onOpenChange(false) })
+    const snapshot = { ...event }
+    startTransition(async () => {
+      await deleteEvent(event.id!)
+      onOpenChange(false)
+      toast('Event deleted', {
+        description: snapshot.title ?? '',
+        action: {
+          label: 'Undo',
+          onClick: async () => {
+            const r = await restoreEvent(snapshot)
+            if (!(r as any)?.error) toast.success('Restored')
+          },
+        },
+        duration: 5000,
+      })
+    })
   }
 
   const rangeText = prettyRange(startDate, startTime, endDate, endTime)

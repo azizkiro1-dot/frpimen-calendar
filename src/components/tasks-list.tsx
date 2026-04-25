@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { createTask, toggleTask, deleteTask } from '@/app/actions/tasks'
+import { restoreTask } from '@/app/actions/undo'
+import { toast } from 'sonner'
 import { Plus, Trash2, Check, Clock, AlertCircle, ListTodo, Flame } from 'lucide-react'
 import { DateTime } from 'luxon'
 
@@ -86,8 +88,22 @@ export function TasksList({ tasks }: { tasks: Task[] }) {
   }
   const handleToggle = (id: string, status: string) => startTransition(() => { toggleTask(id, status) })
   const handleDelete = (id: string) => {
-    if (!confirm('Delete this task?')) return
-    startTransition(() => { deleteTask(id) })
+    const snapshot = tasks.find(t => t.id === id)
+    if (!snapshot) return
+    startTransition(async () => {
+      await deleteTask(id)
+      toast('Task deleted', {
+        description: snapshot.title,
+        action: {
+          label: 'Undo',
+          onClick: async () => {
+            const r = await restoreTask(snapshot)
+            if (!(r as any)?.error) toast.success('Restored')
+          },
+        },
+        duration: 5000,
+      })
+    })
   }
 
   const filterChips: { id: typeof filter; label: string; count: number; icon: any }[] = [

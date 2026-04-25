@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { SWRegister } from '@/components/sw-register'
 import { OnboardingTour } from '@/components/onboarding-tour'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/toaster'
 import { QuickAddBar } from '@/components/quick-add-bar'
 import { SearchPalette } from '@/components/search-palette'
 
@@ -34,7 +36,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-neutral-50"><SWRegister />{children}<OnboardingTour /><QuickAddBar /><SearchPalette /></body>
+      <body className="min-h-full flex flex-col bg-neutral-50">
+        <script
+          dangerouslySetInnerHTML={{ __html: `
+(function(){try{var t=localStorage.getItem('frpimen_theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})()
+          ` }}
+        /><SWRegister /><ThemeProvider>{children}<OnboardingTour /><Toaster /><QuickAddBar /><SearchPalette /></ThemeProvider></body>
     </html>
   )
 }

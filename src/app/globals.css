@@ -346,3 +346,48 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+.dark {
+  --popover: #1a1a1a;
+  --popover-foreground: #fafafa;
+  --bg: #0a0a0a;
+  --surface: #161616;
+  --surface-muted: #1f1f1f;
+  --border: #2a2a2a;
+  --border-strong: #404040;
+  --text: #fafafa;
+  --text-muted: #a3a3a3;
+  --text-subtle: #737373;
+  --accent: #fafafa;
+  --accent-soft: #1f1f1f;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark-mode tweaks for FullCalendar */
+.dark .fc { color: var(--text); }
+.dark .fc-theme-standard td, .dark .fc-theme-standard th { border-color: var(--border); }
+.dark .fc-scrollgrid { border-color: var(--border) !important; }
+.dark .fc-day-today { background-color: rgba(254, 240, 138, 0.06) !important; }
+.dark .fc-col-header-cell-cushion { color: var(--text-muted); }
+.dark .fc-popover { background: var(--surface) !important; border-color: var(--border) !important; color: var(--text); }
+.dark .fc-popover-header { background: var(--surface-muted) !important; }
+.dark .fc-list-event-time, .dark .fc-list-event-title { color: var(--text); }
+
+/* Tailwind utility overrides for dark surfaces */
+.dark .bg-white { background-color: var(--surface) !important; }
+.dark .bg-neutral-50 { background-color: var(--bg) !important; }
+.dark .bg-neutral-100 { background-color: var(--surface-muted) !important; }
+.dark .border-neutral-200, .dark .border-neutral-200\/80 { border-color: var(--border) !important; }
+.dark .text-neutral-900 { color: var(--text) !important; }
+.dark .text-neutral-700 { color: #d4d4d4 !important; }
+.dark .text-neutral-600 { color: var(--text-muted) !important; }
+.dark .text-neutral-500 { color: var(--text-muted) !important; }
+.dark .text-neutral-400 { color: var(--text-subtle) !important; }
+.dark .hover\:bg-neutral-50:hover { background-color: var(--surface-muted) !important; }
+.dark .hover\:bg-neutral-100:hover { background-color: var(--surface-muted) !important; }
