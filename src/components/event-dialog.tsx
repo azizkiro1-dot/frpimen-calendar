@@ -303,7 +303,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
                     <li key={c.id} className="flex gap-2">
                       <span className="text-amber-500">•</span>
                       <div>
-                        <span className="font-medium">{c.title}</span> <span className="text-amber-700">{s.toFormat('h:mm a')} – {en.rmat('h:mm a')}</span>
+                        <span className="font-medium">{c.title}</span> <span className="text-amber-700">{s.toFormat('h:mm a')} – {en.toFormat('h:mm a')}</span>
                       </div>
                     </li>
                   )
