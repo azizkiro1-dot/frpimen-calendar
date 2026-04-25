@@ -83,7 +83,8 @@ function prettyRange(startDate: string, startTime: string, endDate: string, endT
   return `${s.toFormat('EEE LLL d, h:mm a')} – ${e.toFormat('EEE LLL d, h:mm a')}`
 }
 
-export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDate }: Props) onst isEdit = !!event?.id
+export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDate }: Props) {
+  const isEdit = !!event?.id
   const [pending, startTransition] = useTransition()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
