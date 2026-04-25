@@ -105,6 +105,8 @@ export function CalendarView({ events, onEventClick, onDateClick, onCreateClick 
           height="auto"
           nowIndicator
           dayMaxEvents={3}
+          moreLinkClick="popover"
+          dayPopoverFormat={{ month: "long", day: "numeric", year: "numeric" }}
           editable
           selectable
           timeZone={TZ}
