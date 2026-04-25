@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Download, Bell, Trash2, AlertTriangle, Mail, User, Palette, MapPin, Save as SaveIcon, Building2 } from 'lucide-react'
 import { setDefaultLocation } from '@/app/actions/profile'
@@ -63,6 +63,17 @@ export function SettingsPanel({ email, name, defaultLocation = '' }: { email: st
         <div className="px-5 py-4 flex items-center justify-between">
           <span className="text-[14px] text-neutral-700">Theme</span>
           <ThemeToggle />
+        </div>
+      </Card>
+
+      {/* Branding */}
+      <Card>
+        <SectionHead icon={Building2} title="Church branding" />
+        <div className="px-5 py-4 space-y-3">
+          <p className="text-[13px] text-neutral-600">
+            Shown on public booking pages.
+          </p>
+          <BrandingFields />
         </div>
       </Card>
 
@@ -237,6 +248,53 @@ function DefaultLocationField({ initial }: { initial: string }) {
              className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-400 text-[14px]" />
       <button onClick={save} disabled={busy} className="text-[13px] font-medium text-neutral-700 hover:text-neutral-900 px-3 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 bg-white flex items-center gap-1.5">
         <SaveIcon className="h-3.5 w-3.5" /> {busy ? 'Saving…' : saved ? 'Saved' : 'Save'}
+      </button>
+    </div>
+  )
+}
+
+
+function BrandingFields() {
+  const [name, setName] = useState('')
+  const [logo, setLogo] = useState('/church-logo.png')
+  const [color, setColor] = useState('#7B1F2A')
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+  // hydrate
+  useEffect(() => {
+    fetch('/api/branding').then(r => r.json()).then(j => {
+      if (j.church_name) setName(j.church_name)
+      if (j.logo_url) setLogo(j.logo_url)
+      if (j.brand_color) setColor(j.brand_color)
+    }).catch(() => {})
+  }, [])
+  const save = async () => {
+    setBusy(true)
+    await fetch('/api/branding', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ church_name: name, logo_url: logo, brand_color: color }) })
+    setBusy(false); setSaved(true); setTimeout(() => setSaved(false), 1500)
+  }
+  return (
+    <div className="space-y-3">
+      <label className="block">
+        <span className="text-[11.5px] uppercase tracking-wide text-neutral-500 font-medium">Church name</span>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="St. Mark Coptic Orthodox Church"
+               className="mt-1 w-full px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-400 text-[14px]" />
+      </label>
+      <label className="block">
+        <span className="text-[11.5px] uppercase tracking-wide text-neutral-500 font-medium">Logo URL</span>
+        <input value={logo} onChange={e => setLogo(e.target.value)} placeholder="/church-logo.png"
+               className="mt-1 w-full px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-400 text-[14px] font-mono" />
+        {logo && <div className="mt-2 p-2 rounded-lg bg-neutral-50 border border-neutral-100"><img src={logo} alt="logo" className="h-16 w-auto" /></div>}
+      </label>
+      <label className="block">
+        <span className="text-[11.5px] uppercase tracking-wide text-neutral-500 font-medium">Brand color</span>
+        <div className="mt-1 flex items-center gap-2">
+          <input type="color" value={color} onChange={e => setColor(e.target.value)} className="h-9 w-12 rounded cursor-pointer border border-neutral-200" />
+          <input value={color} onChange={e => setColor(e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-400 text-[14px] font-mono" />
+        </div>
+      </label>
+      <button onClick={save} disabled={busy} className="text-[13px] font-medium text-neutral-700 hover:text-neutral-900 px-4 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 bg-white flex items-center gap-1.5">
+        <SaveIcon className="h-3.5 w-3.5" /> {busy ? 'Saving…' : saved ? 'Saved' : 'Save branding'}
       </button>
     </div>
   )

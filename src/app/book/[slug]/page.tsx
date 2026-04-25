@@ -22,16 +22,24 @@ export default async function BookPage({ params }: { params: Promise<{ slug: str
 
   // Fetch priest name separately
   const { data: profile } = await sb
-    .from('profiles').select('full_name').eq('id', link.owner_id).single()
+    .from('profiles').select('full_name, church_name, logo_url, brand_color').eq('id', link.owner_id).single()
   const ownerName = profile?.full_name ?? 'Fr. Pimen'
+  const churchName = profile?.church_name
+  const logoUrl = profile?.logo_url
+  const brandColor = profile?.brand_color ?? '#7B1F2A'
 
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4 sm:p-8">
       <div className="max-w-3xl w-full bg-white rounded-3xl shadow-xl border border-neutral-200 overflow-hidden grid md:grid-cols-[280px_1fr]">
         <div className="bg-neutral-50/80 border-b md:border-b-0 md:border-r border-neutral-200 p-6 sm:p-7">
-          <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-amber-400 to-pink-500 flex items-center justify-center mb-3 shadow-sm">
-            <span className="text-white font-bold">{ownerName[0] ?? 'P'}</span>
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt="logo" className="h-14 w-auto mb-3" />
+          ) : (
+            <div className="h-9 w-9 rounded-2xl flex items-center justify-center mb-3 shadow-sm" style={{ background: brandColor }}>
+              <span className="text-white font-bold">{ownerName[0] ?? 'P'}</span>
+            </div>
+          )}
+          {churchName && <p className="text-[12px] text-neutral-500 font-medium mb-1">{churchName}</p>}
           <p className="text-[12px] uppercase tracking-wide text-neutral-500 font-semibold">{ownerName}</p>
           <h1 className="text-xl font-bold mt-1 leading-tight tracking-tight">{link.name}</h1>
           <div className="mt-4 space-y-2 text-[13px] text-neutral-600">
