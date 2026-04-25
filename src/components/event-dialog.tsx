@@ -234,8 +234,8 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg p-0 gap-0 max-h-[92vh] overflow-y-auto [&>button]:hidden rounded-2xl">
         <div
-          className="px-5 pt-5 pb-4 relative overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0.12)} 0%, ${hexToRgba(accent, 0.04)} 100%)` }}
+          className="px-5 pt-5 pb-4 relative overflow-hidden bg-white border-b border-neutral-100"
+          
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -255,7 +255,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
         </div>
 
         <div className="px-5 py-5 space-y-5">
-          <div className="rounded-xl border border-neutral-200 p-4 space-y-3 bg-neutral-50/40">
+          <div className="rounded-xl border border-neutral-200 p-4 space-y-3 bg-white">
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-neutral-500 font-semibold">
               <CalendarDays className="h-3.5 w-3.5" /> Date and time
             </div>
@@ -422,7 +422,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
         </div>
 
-        <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 bg-neutral-50/60 backdrop-blur sticky bottom-0">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 bg-white border-neutral-100 sticky bottom-0">
           {isEdit ? (
             <Button type="button" variant="ghost" onClick={handleDelete} disabled={pending} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 rounded-full">
               <Trash2 className="h-4 w-4 mr-1.5" /> Delete
@@ -430,7 +430,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
           ) : <div />}
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending} className="h-9 rounded-full">Cancel</Button>
-            <Button type="button" onClick={handleSave} disabled={pending} className="h-9 rounded-full px-5" style={{ background: accent }}>
+            <Button type="button" onClick={handleSave} disabled={pending} className="h-9 rounded-full px-5 bg-neutral-900 hover:bg-neutral-800">
               {pending ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Saving</> : 'Save'}
             </Button>
           </div>
