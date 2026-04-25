@@ -41,7 +41,7 @@ export function ChatInterface({
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.error ?? 'Chat failed')
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.content }])
+      setMessages((prev) => [...prev, { role: 'assistant', content: data.text }])
     } catch (err: any) {
       setMessages((prev) => [
         ...prev,
