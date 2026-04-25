@@ -80,6 +80,35 @@ export async function getAvailableSlots(slug: string, dateStr: string): Promise<
     .gte('starts_at', dayStart.toUTC().toISO()!)
     .lt('starts_at', dayEnd.plus({ hours: 24 }).toUTC().toISO()!)
 
+  // Fetch blocks for this day
+  const { data: rangeBlocks } = await sb.from('time_blocks')
+    .select('starts_at, ends_at')
+    .eq('owner_id', link.owner_id).eq('kind', 'range')
+    .gte('ends_at', dayStart.toUTC().toISO()!)
+    .lt('starts_at', dayEnd.plus({ hours: 24 }).toUTC().toISO()!)
+
+  const { data: dailyBlocks } = await sb.from('time_blocks')
+    .select('daily_start, daily_end, weekdays')
+    .eq('owner_id', link.owner_id).eq('kind', 'recurring_daily')
+
+  const blockedRanges: { start: DateTime; end: DateTime }[] = []
+  for (const r of rangeBlocks ?? []) {
+    blockedRanges.push({
+      start: DateTime.fromISO(r.starts_at, { zone: 'utc' }),
+      end: DateTime.fromISO(r.ends_at, { zone: 'utc' }),
+    })
+  }
+  for (const d of dailyBlocks ?? []) {
+    if (d.weekdays && Array.isArray(d.weekdays) && !d.weekdays.includes(weekday)) continue
+    if (!d.daily_start || !d.daily_end) continue
+    const [dsH, dsM] = d.daily_start.split(':').map(Number)
+    const [deH, deM] = d.daily_end.split(':').map(Number)
+    blockedRanges.push({
+      start: day.set({ hour: dsH, minute: dsM, second: 0 }).toUTC(),
+      end: day.set({ hour: deH, minute: deM, second: 0 }).toUTC(),
+    })
+  }
+
   const slots: string[] = []
   const step = link.duration_minutes + (link.buffer_after_minutes ?? 0)
   let cursor = dayStart
@@ -95,7 +124,7 @@ export async function getAvailableSlots(slug: string, dateStr: string): Promise<
       const eS = DateTime.fromISO(e.starts_at, { zone: 'utc' })
       const eE = DateTime.fromISO(e.ends_at, { zone: 'utc' })
       return eS < slotEnd.toUTC() && eE > slotStart.toUTC()
-    })
+    }) || blockedRanges.some(b => b.start < slotEnd.toUTC() && b.end > slotStart.toUTC())
     if (!conflicts) slots.push(slotStart.toFormat('HH:mm'))
     cursor = cursor.plus({ minutes: step })
   }
