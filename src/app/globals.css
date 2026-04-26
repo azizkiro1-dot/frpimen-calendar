@@ -391,3 +391,6 @@ input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .dark .text-neutral-400 { color: var(--text-subtle) !important; }
 .dark .hover\:bg-neutral-50:hover { background-color: var(--surface-muted) !important; }
 .dark .hover\:bg-neutral-100:hover { background-color: var(--surface-muted) !important; }
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

@@ -13,6 +13,7 @@ import { restoreEvent } from '@/app/actions/undo'
 import { toast } from 'sonner'
 import { checkConflicts, suggestAlternatives, type ConflictEvent } from '@/app/actions/conflicts'
 import { Trash2, AlertTriangle, Sparkles, Loader2, Globe } from 'lucide-react'
+import { TimeWheel } from '@/components/time-wheel'
 import { detectTimezone } from '@/lib/travel-tz'
 
 const TZ = 'America/Chicago'
@@ -294,24 +295,14 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
             <span className="text-[14px] text-neutral-700">Starts</span>
             <div className="flex items-center gap-2">
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-[14px] text-neutral-900 bg-transparent border-0 focus:outline-none tabular-nums" />
-              <Select value={startTime} onValueChange={setStartTime}>
-                <SelectTrigger className="h-7 w-[100px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{formatTimeLabel(t)}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <TimeWheel value={startTime} onChange={setStartTime} />
             </div>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[14px] text-neutral-700">Ends</span>
             <div className="flex items-center gap-2">
               <input type="date" value={endDate} onChange={e => onEndDateChange(e.target.value)} className="text-[14px] text-neutral-900 bg-transparent border-0 focus:outline-none tabular-nums" />
-              <Select value={endTime} onValueChange={onEndTimeChange}>
-                <SelectTrigger className="h-7 w-[100px] text-[13px] bg-neutral-100 border-0 rounded-md px-2.5 hover:bg-neutral-200"><SelectValue /></SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{formatTimeLabel(t)}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <TimeWheel value={endTime} onChange={onEndTimeChange} />
             </div>
           </div>
           {rangeText && <p className="text-[12px] text-neutral-500">{rangeText}</p>}
