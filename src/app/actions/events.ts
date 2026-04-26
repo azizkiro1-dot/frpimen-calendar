@@ -87,6 +87,7 @@ export async function createEvent(formData: FormData) {
       await supabase.from('event_attendees').insert(
         emails.map((email) => ({ event_id: event.id, email, rsvp_status: 'pending' }))
       )
+      await sendInviteEmails(event.id, user.email ?? null, emails)
     }
   }
 
@@ -141,13 +142,32 @@ async function notifyAttendees(eventId: string, type: 'updated' | 'cancelled', c
     const sb = createService(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     const { data: attendees } = await sb.from('event_attendees').select('email, name').eq('event_id', eventId)
     if (!attendees?.length) return
-    const { data: event } = await sb.from('events').select('title, starts_at, ends_at, location').eq('id', eventId).single()
+    const { data: event } = await sb.from('events').select('title, starts_at, ends_at, location, owner_id').eq('id', eventId).single()
     if (!event) return
     const { sendEmail } = await import('@/lib/email/send')
     const subject = type === 'cancelled' ? `Cancelled: ${event.title}` : `Updated: ${event.title}`
     const body = `<div style="font-family:system-ui,sans-serif;padding:24px;max-width:520px;margin:0 auto"><h2>${subject}</h2><p style="color:#525252">${type === 'cancelled' ? 'This event has been cancelled.' : 'The event details have changed.'}</p><div style="background:#f5f5f5;border-radius:14px;padding:16px;margin:16px 0"><div style="font-weight:600">${event.title}</div><div style="color:#525252;margin-top:4px">${new Date(event.starts_at).toLocaleString('en-US', { timeZone: 'America/Chicago', dateStyle: 'full', timeStyle: 'short' })}</div>${event.location ? `<div style="color:#525252;margin-top:4px">📍 ${event.location}</div>` : ''}</div></div>`
+    const { data: { user: ownerUser } } = await sb.auth.admin.getUserById(event.owner_id ?? '')
     for (const a of attendees) {
-      await sendEmail(a.email, subject, body).catch(() => {})
+      await sendEmail(a.email, subject, body, { replyTo: ownerUser?.email ?? undefined }).catch(() => {})
     }
   } catch (e) { console.error('notify attendees failed', e) }
+}
+
+
+async function sendInviteEmails(eventId: string, ownerEmail: string | null, attendeeEmails: string[]) {
+  if (!attendeeEmails.length) return
+  try {
+    const { createClient: createService } = await import('@supabase/supabase-js')
+    const sb = createService(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const { data: event } = await sb.from('events').select('title, starts_at, ends_at, location, description').eq('id', eventId).single()
+    if (!event) return
+    const { sendEmail } = await import('@/lib/email/send')
+    const dt = new Date(event.starts_at).toLocaleString('en-US', { timeZone: 'America/Chicago', dateStyle: 'full', timeStyle: 'short' })
+    const subject = `Invite: ${event.title}`
+    const body = `<div style="font-family:system-ui,sans-serif;padding:24px;max-width:520px;margin:0 auto"><h2>${event.title}</h2><div style="background:#f5f5f5;border-radius:14px;padding:16px;margin:16px 0"><div style="color:#525252">${dt}</div>${event.location ? `<div style="color:#525252;margin-top:4px">📍 ${event.location}</div>` : ''}</div>${event.description ? `<p style="color:#525252;font-size:13px">${event.description}</p>` : ''}<p style="color:#737373;font-size:12px">This invitation was sent on behalf of Fr. Pimen.</p></div>`
+    for (const email of attendeeEmails) {
+      await sendEmail(email, subject, body, { replyTo: ownerEmail ?? undefined }).catch(() => {})
+    }
+  } catch (e) { console.error('sendInviteEmails failed', e) }
 }

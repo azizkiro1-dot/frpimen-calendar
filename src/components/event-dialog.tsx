@@ -160,7 +160,7 @@ export function EventDialog({ open, onOpenChange, meetingTypes, event, defaultDa
       setStartTime(startDt.toFormat('HH:mm'))
       setEndDate(endDt.toFormat('yyyy-LL-dd'))
       setEndTime(endDt.toFormat('HH:mm'))
-      setMeetingTypeId(defaultType?.id ?? '')
+      setMeetingTypeId('')  // empty by default; user picks
       setAttendeeEmails([])
       setBusyLevel('busy'); setVisibility('default'); setRecurrence('none')
       endTouchedRef.current = false
