@@ -1,19 +1,20 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Clock } from 'lucide-react'
 
 type Props = {
   value: string  // HH:mm 24h
   onChange: (v: string) => void
 }
 
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 1)  // 1..12
-const MINS = Array.from({ length: 12 }, (_, i) => i * 5)   // 0,5,..55
-const PERIODS = ['AM', 'PM']
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1)
+const MINS = Array.from({ length: 12 }, (_, i) => i * 5)
 
 function parse(value: string): { h: number; m: number; p: 'AM' | 'PM' } {
-  const [hh, mm] = value.split(':').map(Number)
-  const period = hh >= 12 ? 'PM' : 'AM'
+  const [hh, mm] = (value || '09:00').split(':').map(Number)
+  const period: 'AM' | 'PM' = hh >= 12 ? 'PM' : 'AM'
   const h12 = hh === 0 ? 12 : hh > 12 ? hh - 12 : hh
   return { h: h12, m: mm || 0, p: period }
 }
@@ -24,62 +25,82 @@ function combine(h: number, m: number, p: 'AM' | 'PM'): string {
   return `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
+function fmt12(value: string): string {
+  const { h, m, p } = parse(value)
+  return `${h}:${String(m).padStart(2, '0')} ${p}`
+}
+
 export function TimeWheel({ value, onChange }: Props) {
-  const init = parse(value || '09:00')
-  const [hour, setHour] = useState(init.h)
-  const [minute, setMinute] = useState(MINS.reduce((p, c) => Math.abs(c - init.m) < Math.abs(p - init.m) ? c : p, 0))
-  const [period, setPeriod] = useState<'AM' | 'PM'>(init.p)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const { h, m, p } = parse(value)
 
   useEffect(() => {
-    onChange(combine(hour, minute, period))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hour, minute, period])
+    if (!open) return
+    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
 
   return (
-    <div className="flex gap-1 bg-neutral-50 rounded-xl p-2">
-      <Wheel items={HOURS}     value={hour}   onChange={setHour}   format={n => String(n)} />
-      <span className="self-center text-neutral-400 font-bold pb-1">:</span>
-      <Wheel items={MINS}      value={minute} onChange={setMinute} format={n => String(n).padStart(2, '0')} />
-      <Wheel items={PERIODS as any} value={period} onChange={(v: any) => setPeriod(v)} format={v => String(v)} />
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="h-8 px-3 text-[13px] bg-neutral-100 hover:bg-neutral-200 rounded-md tabular-nums font-medium flex items-center gap-1.5"
+      >
+        <Clock className="h-3 w-3 opacity-50" />
+        {fmt12(value)}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16 }}
+            className="absolute right-0 top-full mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-neutral-200 p-2 flex gap-1"
+          >
+            <Col items={HOURS_12}    selected={h}    onPick={n => onChange(combine(n, m, p))} format={n => String(n)} />
+            <span className="self-center text-neutral-300 px-0.5">:</span>
+            <Col items={MINS}        selected={m}    onPick={n => onChange(combine(h, n, p))} format={n => String(n).padStart(2, '0')} />
+            <Col items={['AM','PM']} selected={p}    onPick={(v: any) => onChange(combine(h, m, v))} format={v => v} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-function Wheel<T extends string | number>({
-  items, value, onChange, format,
-}: { items: T[]; value: T; onChange: (v: T) => void; format: (v: T) => string }) {
+function Col<T extends string | number>({
+  items, selected, onPick, format,
+}: { items: T[]; selected: T; onPick: (v: T) => void; format: (v: T) => string }) {
   const ref = useRef<HTMLDivElement>(null)
-  const ITEM_H = 36
-  const idx = items.indexOf(value)
-
   useEffect(() => {
     if (!ref.current) return
-    ref.current.scrollTop = idx * ITEM_H
-  }, [idx])
-
-  const onScroll = () => {
-    if (!ref.current) return
-    const i = Math.round(ref.current.scrollTop / ITEM_H)
-    if (items[i] !== undefined && items[i] !== value) onChange(items[i])
-  }
+    const i = items.indexOf(selected)
+    if (i >= 0) ref.current.scrollTop = i * 32 - 32
+  }, [selected, items])
 
   return (
-    <div className="relative h-[108px] w-16 overflow-hidden">
-      <div className="absolute inset-x-0 top-[36px] h-[36px] bg-white rounded-md pointer-events-none" />
-      <div
-        ref={ref}
-        onScroll={onScroll}
-        className="h-full overflow-y-auto snap-y snap-mandatory scrollbar-hide"
-        style={{ scrollSnapType: 'y mandatory', paddingTop: ITEM_H, paddingBottom: ITEM_H }}
-      >
+    <div ref={ref} className="relative h-[160px] w-[60px] overflow-y-auto rounded-xl bg-neutral-50 scrollbar-hide">
+      <div className="py-[64px]">
         {items.map((it, i) => (
-          <div key={i} className={`h-9 flex items-center justify-center snap-center text-[15px] tabular-nums ${
-            it === value ? 'font-semibold text-neutral-900' : 'text-neutral-400'
-          }`}>
+          <button
+            key={i}
+            type="button"
+            onClick={() => onPick(it)}
+            className={`block w-full h-8 text-[14px] tabular-nums transition ${
+              it === selected ? 'font-semibold text-neutral-900 bg-white rounded-lg shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
+            }`}
+          >
             {format(it)}
-          </div>
+          </button>
         ))}
       </div>
+      <div className="absolute inset-x-0 top-0 h-[64px] bg-gradient-to-b from-neutral-50 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-[64px] bg-gradient-to-t from-neutral-50 to-transparent pointer-events-none" />
     </div>
   )
 }

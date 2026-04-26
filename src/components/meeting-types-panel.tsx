@@ -30,6 +30,13 @@ export function MeetingTypesPanel({ types }: { types: MType[] }) {
     })
   }
 
+  const seedDefaults = () => {
+    startTransition(async () => {
+      await fetch('/api/onboarding/seed', { method: 'POST' })
+      window.location.reload()
+    })
+  }
+
   const startEdit = (t: MType) => {
     setEditing(t.id); setShowNew(true)
     setForm({ name: t.name, color: t.color, duration: t.default_duration_minutes })
@@ -83,6 +90,15 @@ export function MeetingTypesPanel({ types }: { types: MType[] }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {types.length === 0 && !showNew && (
+        <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center">
+          <p className="text-sm text-neutral-600 mb-3">No meeting types yet.</p>
+          <button onClick={seedDefaults} className="text-[13px] font-medium px-4 py-2 rounded-full bg-neutral-900 text-white hover:bg-neutral-800">
+            Add 9 default types (Mass, Confession, Baptism, Wedding, Funeral, Counseling, Hospital visit, Meeting, Personal)
+          </button>
+        </div>
+      )}
 
       {types.map(t => (
         <motion.div key={t.id} layout className="bg-white rounded-2xl border border-neutral-200 p-3.5 group flex items-center gap-3">
